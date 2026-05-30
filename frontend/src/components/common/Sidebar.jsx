@@ -6,6 +6,7 @@ import {
   TrendingUp,
   FileBarChart,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   return (
@@ -13,15 +14,39 @@ const Sidebar = () => {
       <h1 className="text-3xl font-bold text-violet-500 mb-10">CineVerse</h1>
 
       <nav className="space-y-3">
-        <button className="w-full flex items-center gap-3 bg-violet-600 p-3 rounded-xl text-white">
+        <Link
+          to="/"
+          className="
+              w-full
+              flex
+              items-center
+              gap-3
+              p-3
+              rounded-xl
+              text-slate-300
+              hover:bg-slate-800
+              "
+        >
           <LayoutDashboard size={20} />
           Dashboard
-        </button>
+        </Link>
 
-        <button className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800">
+        <Link
+          to="/scripts"
+          className="
+              w-full
+              flex
+              items-center
+              gap-3
+              p-3
+              rounded-xl
+              text-slate-300
+              hover:bg-slate-800
+              "
+        >
           <Film size={20} />
           Scripts
-        </button>
+        </Link>
 
         <button className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-300 hover:bg-slate-800">
           <Users size={20} />

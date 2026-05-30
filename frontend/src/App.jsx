@@ -6,6 +6,7 @@ import Login from "./pages/auth/Login";
 import Dashboard from "./pages/dashboard/Dashboard";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
+import Scripts from "./pages/scripts/Scripts";
 
 function App() {
   return (
@@ -20,6 +21,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/scripts"
+          element={
+            <ProtectedRoute>
+              <Scripts />
             </ProtectedRoute>
           }
         />

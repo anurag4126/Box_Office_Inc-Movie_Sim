@@ -50,8 +50,10 @@ app.get("/api/health", (req, res) => {
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
+import scriptRoutes from "./routes/scriptRoutes.js";
 
 app.use("/api/auth", authRoutes);
+app.use("/api/scripts", scriptRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

@@ -16,8 +16,45 @@ const gameStateSchema = new mongoose.Schema(
 
     ownedScripts: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Script",
+        title: String,
+
+        genres: [String],
+
+        quality: Number,
+
+        originality: Number,
+
+        audienceAppeal: Number,
+
+        franchisePotential: Number,
+
+        rarity: String,
+
+        price: Number,
+
+        sellPrice: Number,
+
+        purchasedAt: Date,
+      },
+    ],
+
+    marketScripts: [
+      {
+        title: String,
+
+        genres: [String],
+
+        quality: Number,
+
+        originality: Number,
+
+        audienceAppeal: Number,
+
+        franchisePotential: Number,
+
+        rarity: String,
+
+        price: Number,
       },
     ],
 
@@ -43,9 +80,6 @@ const gameStateSchema = new mongoose.Schema(
   }
 );
 
-const GameState = mongoose.model(
-  "GameState",
-  gameStateSchema
-);
+const GameState = mongoose.model("GameState", gameStateSchema);
 
 export default GameState;
