@@ -33,6 +33,11 @@ const Sidebar = () => {
       icon: Pen,
     },
     {
+      name: "Directors",
+      path: "/directors",
+      icon: Users,
+    },
+    {
       name: "Notifications",
       path: "/notifications",
       icon: Bell,
