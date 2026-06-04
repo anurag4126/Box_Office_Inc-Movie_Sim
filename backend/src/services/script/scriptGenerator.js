@@ -40,6 +40,16 @@ export const generateScripts = (count = 5) => {
         audienceAppeal,
         franchisePotential,
       }),
+
+      writer: null,
+
+      writerId: null,
+
+      studio: "Script Market",
+
+      studioId: null,
+
+      creationDate: new Date(),
     };
   });
 };

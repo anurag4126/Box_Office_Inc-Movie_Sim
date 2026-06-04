@@ -34,6 +34,19 @@ const gameStateSchema = new mongoose.Schema(
 
         sellPrice: Number,
 
+        writer: String,
+
+        writerId: String,
+
+        studio: String,
+
+        studioId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Studio",
+        },
+
+        creationDate: Date,
+
         purchasedAt: Date,
       },
     ],
@@ -55,6 +68,19 @@ const gameStateSchema = new mongoose.Schema(
         rarity: String,
 
         price: Number,
+
+        writer: String,
+
+        writerId: String,
+
+        studio: String,
+
+        studioId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Studio",
+        },
+
+        creationDate: Date,
       },
     ],
 

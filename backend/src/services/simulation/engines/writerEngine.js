@@ -34,9 +34,16 @@ export const processWritingProjects = async (gameState, studio) => {
         project.qualityPenalty || 0
       );
 
+      const creationDate = new Date();
+
       gameState.ownedScripts.push({
         ...script,
-        createdAt: new Date(),
+        writer: writer.name,
+        writerId: writer.id,
+        studio: studio?.name || "Unknown Studio",
+        studioId: studio?._id || null,
+        creationDate,
+        createdAt: creationDate,
       });
 
       writer.status = "AVAILABLE";

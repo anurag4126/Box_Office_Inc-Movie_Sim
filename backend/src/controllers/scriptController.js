@@ -102,6 +102,11 @@ export const buyScript = async (req, res) => {
       rarity: script.rarity,
       price: script.price,
       sellPrice,
+      writer: script.writer || "Unknown Writer",
+      writerId: script.writerId || null,
+      studio: studio.name,
+      studioId: studio._id,
+      creationDate: script.creationDate || new Date(),
       purchasedAt: new Date(),
     });
 
