@@ -118,6 +118,10 @@ export const generateDirector = (forcedAge = null) => {
 
     careerHistory: [],
 
+    studiosWorkedWith: [],
+
+    ratings: [],
+
     discovered: age < 25 ? 10 : age < 40 ? 40 : 80,
   };
 };

@@ -113,6 +113,13 @@ export const hireDirector = async (req, res) => {
       ? marketDirector.toObject()
       : { ...marketDirector };
 
+    if (director.status === "RETIRED") {
+      return res.status(400).json({
+        success: false,
+        message: "Retired directors cannot be hired",
+      });
+    }
+
     director.status = "AVAILABLE";
     director.hiredAt = new Date();
 

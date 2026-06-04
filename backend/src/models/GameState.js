@@ -389,6 +389,10 @@ const gameStateSchema = new mongoose.Schema(
           },
         ],
 
+        studiosWorkedWith: [String],
+
+        ratings: [Number],
+
         discovered: {
           type: Number,
           default: 0,
@@ -492,6 +496,10 @@ const gameStateSchema = new mongoose.Schema(
           },
         ],
 
+        studiosWorkedWith: [String],
+
+        ratings: [Number],
+
         discovered: {
           type: Number,
           default: 0,
@@ -500,6 +508,8 @@ const gameStateSchema = new mongoose.Schema(
         hiredAt: Date,
       },
     ],
+
+    retiredDirectors: [mongoose.Schema.Types.Mixed],
 
     activeDirectorProjects: [
       {
