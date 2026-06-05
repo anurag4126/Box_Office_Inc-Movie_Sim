@@ -212,7 +212,11 @@ const Actors = () => {
       setMarketActors(res.data.marketActors || []);
       setOwnedActors(res.data.ownedActors || []);
       setActiveTab("market");
-      setNotice(`${res.data.actor?.name || "Actor"} released to market.`);
+      setNotice(
+        `${res.data.actor?.name || "Actor"} released. Compensation ₹${Number(
+          res.data.compensation || 0,
+        ).toLocaleString("en-IN")} paid and ${res.data.fanLoss || 0} fans lost.`,
+      );
     } catch (fireError) {
       console.error(fireError);
       setError(fireError?.response?.data?.message || "Failed to release actor");
