@@ -18,9 +18,21 @@ const cardStyles = {
 
 const formatMoney = (amount) => Number(amount || 0).toLocaleString();
 
-const DirectorCard = ({ director, index, mode, onHire, onFire }) => {
+const DirectorCard = ({
+  director,
+  index,
+  mode,
+  onHire,
+  onFire,
+  hitRate = 0,
+  averageRating = 0,
+}) => {
   const avatar = `https://api.dicebear.com/7.x/personas/svg?seed=${director.avatarSeed}`;
   const canRelease = director.status === "AVAILABLE";
+  const hiddenStats =
+    director.statsRevealed === false || Number(director.discovered || 0) < 50;
+  const renderDiscoveredStat = (stat) =>
+    hiddenStats || stat === null || stat === undefined ? "???" : stat;
 
   return (
     <div
@@ -54,6 +66,10 @@ const DirectorCard = ({ director, index, mode, onHire, onFire }) => {
 
         <p className="text-sm text-slate-400">{director.status}</p>
         <p className="mt-2 text-xs text-slate-500">
+          Discovery {Math.min(100, Number(director.discovered || 0))}%
+        </p>
+
+        <p className="mt-1 text-xs text-slate-500">
           Contract {director.contractYears || 1} year
           {Number(director.contractYears || 1) === 1 ? "" : "s"}
         </p>
@@ -62,17 +78,17 @@ const DirectorCard = ({ director, index, mode, onHire, onFire }) => {
       <div className="mt-5 space-y-2 text-slate-300">
         <div className="flex justify-between">
           <span>Creativity</span>
-          <span>{director.creativity}</span>
+          <span>{renderDiscoveredStat(director.creativity)}</span>
         </div>
 
         <div className="flex justify-between">
           <span>Reliability</span>
-          <span>{director.reliability}</span>
+          <span>{renderDiscoveredStat(director.reliability)}</span>
         </div>
 
         <div className="flex justify-between">
           <span>Leadership</span>
-          <span>{director.leadership}</span>
+          <span>{renderDiscoveredStat(director.leadership)}</span>
         </div>
 
         <div className="flex justify-between">
@@ -120,12 +136,35 @@ const DirectorCard = ({ director, index, mode, onHire, onFire }) => {
         </div>
       </div>
 
+      <div className="mt-3 grid grid-cols-2 gap-3 rounded-2xl border border-slate-800 bg-slate-950/40 p-3 text-center">
+        <div>
+          <p className="text-lg font-bold text-violet-300">
+            {Number(hitRate || 0).toFixed(1)}%
+          </p>
+          <p className="text-xs text-slate-500">Hit Rate</p>
+        </div>
+
+        <div>
+          <p className="text-lg font-bold text-sky-300">
+            {Number(averageRating || 0).toFixed(1)}
+          </p>
+          <p className="text-xs text-slate-500">Avg Rating</p>
+        </div>
+      </div>
+
       <div className="mt-5">
         <p className="text-lg font-bold text-green-400">
           ₹{formatMoney(director.salary)}
           <span className="ml-1 text-xs text-slate-400">/week</span>
         </p>
       </div>
+
+      <Link
+        to={`/directors/${director.id}`}
+        className="mt-4 block w-full rounded-xl bg-slate-700 py-3 text-center font-semibold text-white transition hover:bg-slate-600"
+      >
+        View Profile
+      </Link>
 
       {mode === "market" && (
         <button

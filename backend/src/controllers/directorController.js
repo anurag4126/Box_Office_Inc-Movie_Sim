@@ -7,6 +7,7 @@ import {
 } from "../services/director/directorContractService.js";
 import { generateDirectors } from "../services/director/directorGenerator.js";
 import { buildDirectorProfile } from "../services/director/directorProfileService.js";
+import { presentDirectors } from "../services/director/directorPresenter.js";
 
 const findGameState = async (userId) => GameState.findOne({ user: userId });
 
@@ -56,7 +57,7 @@ export const getMarketDirectors = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      directors: gameState.marketDirectors,
+      directors: presentDirectors(gameState.marketDirectors),
     });
   } catch (error) {
     res.status(500).json({
@@ -79,7 +80,7 @@ export const getOwnedDirectors = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      directors: gameState.ownedDirectors || [],
+      directors: presentDirectors(gameState.ownedDirectors || []),
     });
   } catch (error) {
     res.status(500).json({
@@ -174,8 +175,8 @@ export const hireDirector = async (req, res) => {
       success: true,
       message: "Director hired",
       director,
-      marketDirectors: gameState.marketDirectors,
-      ownedDirectors: gameState.ownedDirectors,
+      marketDirectors: presentDirectors(gameState.marketDirectors),
+      ownedDirectors: presentDirectors(gameState.ownedDirectors),
     });
   } catch (error) {
     res.status(500).json({
@@ -256,8 +257,8 @@ export const fireDirector = async (req, res) => {
       fanLoss,
       remainingMoney: studio.money,
       remainingFans: studio.fans,
-      marketDirectors: gameState.marketDirectors,
-      ownedDirectors: gameState.ownedDirectors,
+      marketDirectors: presentDirectors(gameState.marketDirectors),
+      ownedDirectors: presentDirectors(gameState.ownedDirectors),
     });
   } catch (error) {
     res.status(500).json({
@@ -354,7 +355,7 @@ export const replaceDirector = async (req, res) => {
       penalty,
       qualityPenalty: project.qualityPenalty,
       project,
-      ownedDirectors: gameState.ownedDirectors,
+      ownedDirectors: presentDirectors(gameState.ownedDirectors),
     });
   } catch (error) {
     res.status(500).json({
