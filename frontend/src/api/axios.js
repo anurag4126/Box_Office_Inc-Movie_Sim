@@ -3,7 +3,7 @@ import axios from "axios";
 import { store } from "../app/store";
 import { logout, setCredentials } from "../features/auth/authSlice";
 
-const baseURL = "http://localhost:5000/api";
+const baseURL = import.meta.env.VITE_BACKEND_API_URL;
 const REFRESH_BUFFER_MS = 60 * 1000;
 const MIN_REFRESH_DELAY_MS = 5 * 1000;
 const REFRESH_RETRY_DELAY_MS = 30 * 1000;
@@ -44,7 +44,7 @@ const decodeAccessTokenExpiresAt = (token) => {
   const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/");
   const paddedPayload = normalizedPayload.padEnd(
     normalizedPayload.length + ((4 - (normalizedPayload.length % 4)) % 4),
-    "=",
+    "="
   );
 
   try {
@@ -93,7 +93,7 @@ export const scheduleTokenRefresh = (token, accessTokenExpiresAt) => {
 
   const refreshDelay = Math.max(
     expiresAt - Date.now() - REFRESH_BUFFER_MS,
-    MIN_REFRESH_DELAY_MS,
+    MIN_REFRESH_DELAY_MS
   );
 
   refreshTimer = window.setTimeout(() => {
@@ -120,7 +120,7 @@ export const persistAuthSession = ({ user, token, accessTokenExpiresAt }) => {
       user,
       token,
       accessTokenExpiresAt: resolvedAccessTokenExpiresAt,
-    }),
+    })
   );
 
   scheduleTokenRefresh(token, resolvedAccessTokenExpiresAt);
@@ -189,7 +189,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 const refreshIfSessionIsNearExpiry = () => {
@@ -216,7 +216,7 @@ const refreshIfSessionIsNearExpiry = () => {
 
 const storedToken = localStorage.getItem("token");
 const storedAccessTokenExpiresAt = Number(
-  localStorage.getItem("accessTokenExpiresAt"),
+  localStorage.getItem("accessTokenExpiresAt")
 );
 
 if (storedToken) {
