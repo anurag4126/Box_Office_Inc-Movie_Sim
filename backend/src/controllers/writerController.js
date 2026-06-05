@@ -8,7 +8,7 @@ import crypto from "crypto";
 export const getMarketWriters = async (req, res) => {
   const gameState = await GameState.findOne({
     user: req.user._id,
-  });
+  }).select("marketWriters").lean();
 
   if (!gameState) {
     return res.status(404).json({
@@ -17,9 +17,10 @@ export const getMarketWriters = async (req, res) => {
   }
 
   if (!gameState.marketWriters || gameState.marketWriters.length === 0) {
-    gameState.marketWriters = generateWriters(100);
-
-    await gameState.save();
+    const freshGameState = await GameState.findOne({ user: req.user._id });
+    freshGameState.marketWriters = generateWriters(50);
+    await freshGameState.save();
+    return res.status(200).json({ writers: presentWriters(freshGameState.marketWriters) });
   }
 
   res.status(200).json({
@@ -30,7 +31,7 @@ export const getMarketWriters = async (req, res) => {
 export const getOwnedWriters = async (req, res) => {
   const gameState = await GameState.findOne({
     user: req.user._id,
-  });
+  }).select("ownedWriters").lean();
 
   if (!gameState) {
     return res.status(404).json({

@@ -63,7 +63,7 @@ const findActiveDirectorProject = (gameState, directorId, projectId = null) => {
 
 export const getMarketDirectors = async (req, res) => {
   try {
-    const gameState = await findGameState(req.user._id);
+    const gameState = await GameState.findOne({ user: req.user._id }).select("marketDirectors").lean();
 
     if (!gameState) {
       return res.status(404).json({
@@ -73,8 +73,10 @@ export const getMarketDirectors = async (req, res) => {
     }
 
     if (!gameState.marketDirectors || gameState.marketDirectors.length === 0) {
-      gameState.marketDirectors = generateDirectors(100);
-      await gameState.save();
+      const freshGS = await GameState.findOne({ user: req.user._id });
+      freshGS.marketDirectors = generateDirectors(50);
+      await freshGS.save();
+      return res.status(200).json({ success: true, directors: presentDirectors(freshGS.marketDirectors) });
     }
 
     res.status(200).json({
@@ -91,7 +93,7 @@ export const getMarketDirectors = async (req, res) => {
 
 export const getOwnedDirectors = async (req, res) => {
   try {
-    const gameState = await findGameState(req.user._id);
+    const gameState = await GameState.findOne({ user: req.user._id }).select("ownedDirectors").lean();
 
     if (!gameState) {
       return res.status(404).json({

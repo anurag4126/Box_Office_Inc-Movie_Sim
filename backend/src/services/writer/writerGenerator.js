@@ -122,6 +122,6 @@ export const generateWriter = (forcedAge = null) => {
   };
 };
 
-export const generateWriters = (count = 100) => {
+export const generateWriters = (count = 50) => {
   return Array.from({ length: count }, () => generateWriter());
 };

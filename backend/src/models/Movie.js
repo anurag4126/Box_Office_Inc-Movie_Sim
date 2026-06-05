@@ -12,6 +12,7 @@ const movieSchema = new mongoose.Schema(
 
     budget: { type: Number, default: 0 },
     marketingBudget: { type: Number, default: 0 },
+    marketingCampaigns: [{ type: String }],
 
     quality: { type: Number, default: 0 },
     hype: { type: Number, default: 0 },

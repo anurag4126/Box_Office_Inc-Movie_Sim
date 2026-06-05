@@ -22,6 +22,7 @@ import WriterProfile from "./pages/writers/WriterProfile";
 import Notifications from "./pages/notifications/Notifications";
 import Settings from "./pages/settings/Settings";
 import AuthMonitoring from "./pages/auth/AuthMonitoring";
+import Toast from "./components/common/Toast";
 
 function App() {
   return (
@@ -177,6 +178,7 @@ function App() {
           }
         />
       </Routes>
+      <Toast />
     </BrowserRouter>
   );
 }

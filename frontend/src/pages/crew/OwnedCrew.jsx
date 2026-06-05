@@ -23,10 +23,12 @@ const OwnedCrew = () => {
     fetchOwnedCrew();
   }, [fetchOwnedCrew]);
 
-  const handleFire = async (idx) => {
+  const handleFire = async (id) => {
     if (!window.confirm("Are you sure you want to fire this crew team?")) return;
+    if (loading) return;
     try {
-      await api.post(`/crew/fire/${idx}`);
+      setLoading(true);
+      await api.post(`/crew/fire/${id}`);
       fetchOwnedCrew();
     } catch (error) {
       alert(error?.response?.data?.message || "Failed to fire crew team");
@@ -70,11 +72,11 @@ const OwnedCrew = () => {
                 </div>
 
                 <button
-                  disabled={crew.status === 'BUSY'}
-                  onClick={() => handleFire(idx)}
+                  disabled={crew.status === 'BUSY' || loading}
+                  onClick={() => handleFire(crew.id)}
                   className="w-full bg-slate-800 hover:bg-red-600 text-white py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {crew.status === 'BUSY' ? 'Busy on Project' : 'Fire Team'}
+                  {loading ? "Processing..." : crew.status === 'BUSY' ? 'Busy on Project' : 'Fire Team'}
                 </button>
               </div>
             ))}

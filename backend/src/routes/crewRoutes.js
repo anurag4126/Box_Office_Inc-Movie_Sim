@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get("/", protect, getMarketCrewTeams);
 router.get("/owned", protect, getOwnedCrewTeams);
-router.post("/hire/:index", protect, hireCrewTeam);
-router.post("/fire/:index", protect, fireCrewTeam);
+router.post("/hire/:id", protect, hireCrewTeam);
+router.post("/fire/:id", protect, fireCrewTeam);
 
 export default router;

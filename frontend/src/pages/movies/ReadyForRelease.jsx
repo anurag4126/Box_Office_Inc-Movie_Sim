@@ -27,7 +27,9 @@ const ReadyForRelease = () => {
   }, [fetchMovies]);
 
   const handleRelease = async (id) => {
+    if (loading) return;
     try {
+      setLoading(true);
       const res = await api.post(`/movies/${id}/release`);
       navigate(`/movies/${id}/results`, { state: { movie: res.data.movie, growth: res.data.growth } });
     } catch (error) {
@@ -65,10 +67,11 @@ const ReadyForRelease = () => {
                 </div>
 
                 <button
+                  disabled={loading}
                   onClick={() => handleRelease(movie._id)}
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition"
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
                 >
-                  <Play size={18} /> Release Movie
+                  {loading ? "Releasing..." : <><Play size={18} /> Release Movie</>}
                 </button>
               </div>
             ))}

@@ -102,9 +102,9 @@ export const register = async (req, res) => {
 
     await GameState.create({
       user: user._id,
-      marketDirectors: generateDirectors(100),
-      marketActors: generateActors(1000),
-      marketCrewTeams: generateCrewTeams(50),
+      marketDirectors: generateDirectors(50),
+      marketActors: generateActors(100),
+      marketCrewTeams: generateCrewTeams(25),
     });
 
     user.studio = studio._id;

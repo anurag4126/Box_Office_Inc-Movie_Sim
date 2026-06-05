@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
 import api from "../../api/axios";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import { Users, Briefcase, Star, TrendingUp, Filter } from "lucide-react";
+import { showToast } from "../../features/ui/toastSlice";
 
 const CrewMarket = () => {
+  const dispatch = useDispatch();
   const [crewTeams, setCrewTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -25,13 +28,20 @@ const CrewMarket = () => {
     fetchCrewTeams();
   }, [fetchCrewTeams]);
 
-  const handleHire = async (index) => {
+  const handleHire = async (id) => {
+    if (loading) return;
     try {
-      await api.post(`/crew/hire/${index}`);
-      alert("Crew team hired successfully!");
+      setLoading(true);
+      await api.post(`/crew/hire/${id}`);
+      dispatch(showToast({ message: "Crew team hired successfully!", type: "success" }));
       fetchCrewTeams();
     } catch (error) {
-      alert(error?.response?.data?.message || "Failed to hire crew team");
+      dispatch(showToast({
+        message: error?.response?.data?.message || "Failed to hire crew team",
+        type: "error"
+      }));
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -103,10 +113,11 @@ const CrewMarket = () => {
                 <div className="flex items-center justify-between mt-auto">
                   <div className="text-violet-400 font-bold">₹{crew.salary.toLocaleString()}/wk</div>
                   <button
-                    onClick={() => handleHire(crewTeams.findIndex(c => c.id === crew.id))}
-                    className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
+                    disabled={loading}
+                    onClick={() => handleHire(crew.id)}
+                    className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-50"
                   >
-                    Hire Team
+                    {loading ? "Hiring..." : "Hire Team"}
                   </button>
                 </div>
               </div>

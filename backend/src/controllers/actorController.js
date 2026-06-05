@@ -13,7 +13,7 @@ const findGameState = async (userId) => GameState.findOne({ user: userId });
 
 export const getMarketActors = async (req, res) => {
   try {
-    const gameState = await findGameState(req.user._id);
+    const gameState = await GameState.findOne({ user: req.user._id }).select("marketActors").lean();
 
     if (!gameState) {
       return res.status(404).json({
@@ -23,8 +23,10 @@ export const getMarketActors = async (req, res) => {
     }
 
     if (!gameState.marketActors || gameState.marketActors.length === 0) {
-      gameState.marketActors = generateActors(ACTOR_MARKET_SIZE);
-      await gameState.save();
+      const freshGS = await GameState.findOne({ user: req.user._id });
+      freshGS.marketActors = generateActors(100);
+      await freshGS.save();
+      return res.status(200).json({ success: true, actors: presentActors(freshGS.marketActors) });
     }
 
     return res.status(200).json({
@@ -41,7 +43,7 @@ export const getMarketActors = async (req, res) => {
 
 export const getOwnedActors = async (req, res) => {
   try {
-    const gameState = await findGameState(req.user._id);
+    const gameState = await GameState.findOne({ user: req.user._id }).select("ownedActors").lean();
 
     if (!gameState) {
       return res.status(404).json({

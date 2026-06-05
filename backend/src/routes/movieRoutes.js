@@ -3,6 +3,8 @@ import { protect } from "../middleware/authMiddleware.js";
 import {
   createMovie,
   getActiveMovies,
+  getReleasedMovies,
+  releaseMovie,
   getMovieDetails,
 } from "../controllers/movieController.js";
 

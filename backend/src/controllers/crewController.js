@@ -33,12 +33,13 @@ export const getOwnedCrewTeams = async (req, res) => {
 
 export const hireCrewTeam = async (req, res) => {
   try {
-    const { index } = req.params;
+    const { id } = req.params;
     const gameState = await findGameState(req.user._id);
     if (!gameState) return res.status(404).json({ success: false, message: "Game state not found" });
 
+    const index = gameState.marketCrewTeams.findIndex(c => c.id === id);
+    if (index === -1) return res.status(404).json({ success: false, message: "Crew team not found" });
     const crewTeam = gameState.marketCrewTeams[index];
-    if (!crewTeam) return res.status(404).json({ success: false, message: "Crew team not found" });
 
     const hiredCrew = crewTeam.toObject ? crewTeam.toObject() : { ...crewTeam };
     hiredCrew.hiredAt = new Date();
@@ -62,14 +63,15 @@ export const hireCrewTeam = async (req, res) => {
 
 export const fireCrewTeam = async (req, res) => {
   try {
-    const { index } = req.params;
+    const { id } = req.params;
     const gameState = await findGameState(req.user._id);
     const studio = await Studio.findOne({ owner: req.user._id });
 
     if (!gameState || !studio) return res.status(404).json({ success: false, message: "Game state or studio not found" });
 
+    const index = gameState.ownedCrewTeams.findIndex(c => c.id === id);
+    if (index === -1) return res.status(404).json({ success: false, message: "Crew team not found" });
     const crewTeam = gameState.ownedCrewTeams[index];
-    if (!crewTeam) return res.status(404).json({ success: false, message: "Crew team not found" });
 
     if (crewTeam.status === "BUSY") {
       return res.status(400).json({ success: false, message: "Crew team is busy on a project" });

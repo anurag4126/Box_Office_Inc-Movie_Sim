@@ -2,11 +2,24 @@ import { useState, useEffect, useCallback } from "react";
 import api from "../../api/axios";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import { useNavigate } from "react-router-dom";
-import { Film, Users, PenTool, Briefcase, IndianRupee } from "lucide-react";
+import { Film, Users, PenTool, Briefcase, IndianRupee, Check } from "lucide-react";
+
+const MARKETING_CAMPAIGNS = [
+  { id: "trailer", name: "Trailer Campaign", cost: 100000, hypeBoost: 8 },
+  { id: "teaser", name: "Teaser Campaign", cost: 50000, hypeBoost: 4 },
+  { id: "pr", name: "PR Campaign", cost: 200000, hypeBoost: 12 },
+  { id: "tv", name: "TV Advertising", cost: 500000, hypeBoost: 25 },
+  { id: "newspaper", name: "Newspaper Advertising", cost: 50000, hypeBoost: 3 },
+  { id: "digital", name: "Digital Ads", cost: 250000, hypeBoost: 15 },
+  { id: "social", name: "Social Media Campaign", cost: 150000, hypeBoost: 10 },
+  { id: "influencer", name: "Influencer Campaign", cost: 300000, hypeBoost: 18 },
+  { id: "billboards", name: "Billboards", cost: 200000, hypeBoost: 10 },
+];
 
 const CreateMovie = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const [scripts, setScripts] = useState([]);
   const [directors, setDirectors] = useState([]);
@@ -19,11 +32,12 @@ const CreateMovie = () => {
     directorId: "",
     leadActorId: "",
     crewTeamId: "",
-    marketingBudget: 0
+    marketingCampaignIds: []
   });
 
   const loadData = useCallback(async () => {
     try {
+      setFetching(true);
       const [sRes, dRes, aRes, cRes] = await Promise.all([
         api.get("/scripts/owned"),
         api.get("/directors/owned"),
@@ -36,6 +50,8 @@ const CreateMovie = () => {
       setCrewTeams(cRes.data.crewTeams.filter(c => c.status === "AVAILABLE"));
     } catch (error) {
       console.error("Failed to load movie creation data", error);
+    } finally {
+        setFetching(false);
     }
   }, []);
 
@@ -43,12 +59,29 @@ const CreateMovie = () => {
     loadData();
   }, [loadData]);
 
+  const toggleCampaign = (id) => {
+    setFormData(prev => {
+        const current = prev.marketingCampaignIds;
+        if (current.includes(id)) {
+            return { ...prev, marketingCampaignIds: current.filter(cid => cid !== id) };
+        } else {
+            return { ...prev, marketingCampaignIds: [...current, id] };
+        }
+    });
+  };
+
+  const totalMarketingBudget = formData.marketingCampaignIds.reduce((sum, id) => {
+    const campaign = MARKETING_CAMPAIGNS.find(c => c.id === id);
+    return sum + (campaign?.cost || 0);
+  }, 0);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     try {
       setLoading(true);
       await api.post("/movies", formData);
-      alert("Movie production started!");
       navigate("/movies");
     } catch (error) {
       alert(error?.response?.data?.message || "Failed to start production");
@@ -57,24 +90,35 @@ const CreateMovie = () => {
     }
   };
 
+  if (fetching) {
+      return (
+          <DashboardLayout>
+              <div className="flex items-center justify-center min-h-[60vh] text-white font-bold">
+                  Loading Studio Data...
+              </div>
+          </DashboardLayout>
+      );
+  }
+
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8 pb-20">
         <div>
           <h1 className="text-4xl font-bold text-white">Start New Production</h1>
           <p className="text-slate-400 mt-2">Assemble your dream team and create the next blockbuster.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-[#111827] border border-slate-800 rounded-3xl p-8 space-y-6">
+          <div className="bg-[#111827] border border-slate-800 rounded-3xl p-8 space-y-8">
             <div>
               <label className="block text-slate-300 mb-2 font-semibold">Movie Title</label>
               <input
                 type="text"
                 required
+                disabled={loading}
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600"
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600 disabled:opacity-50"
                 placeholder="Enter movie title..."
               />
             </div>
@@ -86,15 +130,17 @@ const CreateMovie = () => {
                 </label>
                 <select
                   required
+                  disabled={loading}
                   value={formData.scriptId}
                   onChange={(e) => setFormData({ ...formData, scriptId: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600 disabled:opacity-50"
                 >
                   <option value="">Select a script</option>
                   {scripts.map(s => (
                     <option key={s.id} value={s.id}>{s.title} ({s.rarity})</option>
                   ))}
                 </select>
+                {scripts.length === 0 && <p className="text-xs text-red-400 mt-1">No available scripts found.</p>}
               </div>
 
               <div>
@@ -103,15 +149,17 @@ const CreateMovie = () => {
                 </label>
                 <select
                   required
+                  disabled={loading}
                   value={formData.directorId}
                   onChange={(e) => setFormData({ ...formData, directorId: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600 disabled:opacity-50"
                 >
                   <option value="">Select a director</option>
                   {directors.map(d => (
                     <option key={d.id} value={d.id}>{d.name} ({d.rarity})</option>
                   ))}
                 </select>
+                {directors.length === 0 && <p className="text-xs text-red-400 mt-1">No available directors found.</p>}
               </div>
 
               <div>
@@ -120,15 +168,17 @@ const CreateMovie = () => {
                 </label>
                 <select
                   required
+                  disabled={loading}
                   value={formData.leadActorId}
                   onChange={(e) => setFormData({ ...formData, leadActorId: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600 disabled:opacity-50"
                 >
                   <option value="">Select an actor</option>
                   {actors.map(a => (
                     <option key={a.id} value={a.id}>{a.name} ({a.rarity})</option>
                   ))}
                 </select>
+                {actors.length === 0 && <p className="text-xs text-red-400 mt-1">No available actors found.</p>}
               </div>
 
               <div>
@@ -137,39 +187,61 @@ const CreateMovie = () => {
                 </label>
                 <select
                   required
+                  disabled={loading}
                   value={formData.crewTeamId}
                   onChange={(e) => setFormData({ ...formData, crewTeamId: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600 disabled:opacity-50"
                 >
                   <option value="">Select a crew team</option>
                   {crewTeams.map(c => (
                     <option key={c.id} value={c.id}>{c.name} ({c.rarity})</option>
                   ))}
                 </select>
+                {crewTeams.length === 0 && <p className="text-xs text-red-400 mt-1">No available crew teams found.</p>}
               </div>
             </div>
 
             <div>
-              <label className="block text-slate-300 mb-2 font-semibold flex items-center gap-2">
-                <IndianRupee size={18} className="text-violet-500" /> Marketing Budget
+              <label className="block text-slate-300 mb-4 font-semibold flex items-center gap-2 border-b border-slate-800 pb-2">
+                <IndianRupee size={18} className="text-violet-500" /> Marketing Campaigns
               </label>
-              <input
-                type="number"
-                value={formData.marketingBudget}
-                onChange={(e) => setFormData({ ...formData, marketingBudget: Number(e.target.value) })}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white outline-none focus:border-violet-600"
-                placeholder="Enter marketing budget..."
-              />
-              <p className="text-xs text-slate-500 mt-1">Increasing marketing budget boosts initial hype.</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {MARKETING_CAMPAIGNS.map(campaign => {
+                    const active = formData.marketingCampaignIds.includes(campaign.id);
+                    return (
+                        <button
+                            key={campaign.id}
+                            type="button"
+                            disabled={loading}
+                            onClick={() => toggleCampaign(campaign.id)}
+                            className={`p-4 rounded-xl border text-left transition-all relative ${
+                                active
+                                ? 'bg-violet-600/20 border-violet-500'
+                                : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+                            }`}
+                        >
+                            <div className="text-white font-bold text-sm mb-1">{campaign.name}</div>
+                            <div className="text-violet-400 font-bold text-xs">₹{campaign.cost.toLocaleString()}</div>
+                            {active && <div className="absolute top-2 right-2 bg-violet-500 rounded-full p-0.5"><Check size={12} className="text-white" /></div>}
+                        </button>
+                    )
+                })}
+              </div>
+
+              <div className="mt-6 p-4 bg-slate-950 rounded-xl flex justify-between items-center border border-slate-800">
+                <span className="text-slate-400 font-bold uppercase text-xs">Total Marketing Budget</span>
+                <span className="text-white font-black text-xl">₹{totalMarketingBudget.toLocaleString()}</span>
+              </div>
             </div>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-violet-600 hover:bg-violet-700 text-white py-4 rounded-2xl font-bold text-lg transition disabled:bg-slate-700"
+            disabled={loading || fetching}
+            className="w-full bg-violet-600 hover:bg-violet-700 text-white py-5 rounded-2xl font-black text-xl tracking-wide uppercase transition disabled:bg-slate-700 disabled:cursor-not-allowed shadow-xl shadow-violet-950/20"
           >
-            {loading ? "Starting Production..." : "Start Production"}
+            {loading ? "Starting Production..." : "Launch Production"}
           </button>
         </form>
       </div>

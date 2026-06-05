@@ -89,6 +89,6 @@ export const generateCrewTeam = () => {
   };
 };
 
-export const generateCrewTeams = (count = 50) => {
+export const generateCrewTeams = (count = 25) => {
   return Array.from({ length: count }, () => generateCrewTeam());
 };

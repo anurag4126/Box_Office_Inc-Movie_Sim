@@ -29,6 +29,7 @@ const Dashboard = () => {
   }, [dispatch]);
 
   const simulateWeek = async () => {
+    if (loading) return;
     try {
       setLoading(true);
 

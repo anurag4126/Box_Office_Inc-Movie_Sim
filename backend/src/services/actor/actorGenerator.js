@@ -85,7 +85,7 @@ export const generateActor = (forcedAge = null) => {
   };
 };
 
-export const generateActors = (count = 1000) => {
+export const generateActors = (count = 100) => {
   const targetYoungActors = Math.floor(count * 0.2);
   const targetPrimeActors = Math.floor(count * 0.7);
   const targetVeteranActors = count - targetYoungActors - targetPrimeActors;

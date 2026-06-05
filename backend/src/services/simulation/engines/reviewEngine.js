@@ -7,16 +7,26 @@ const getReviewLabel = (score) => {
 };
 
 export const generateReviews = (movie, script, director, leadActor, crewTeam) => {
+  // Defensive checks to prevent crashes if data is missing
+  const scriptQuality = script?.quality ?? 50;
+  const scriptAudienceAppeal = script?.audienceAppeal ?? 50;
+  const directorCreativity = director?.creativity ?? 50;
+  const directorReputation = director?.reputation ?? 50;
+  const crewTechnicalQuality = crewTeam?.technicalQuality ?? 50;
+  const actorActingSkill = leadActor?.actingSkill ?? 50;
+  const actorPopularity = leadActor?.popularity ?? 50;
+  const movieQuality = movie?.quality ?? 50;
+
   // Critic Score Formula:
   // Script Quality → 40%
   // Director Creativity → 30%
   // Crew Technical Quality → 20%
   // Lead Actor Skill → 10%
   const criticScore = Math.round(
-    (script.quality * 0.4) +
-    (director.creativity * 0.3) +
-    (crewTeam.technicalQuality * 0.2) +
-    (leadActor.actingSkill * 0.1)
+    (scriptQuality * 0.4) +
+    (directorCreativity * 0.3) +
+    (crewTechnicalQuality * 0.2) +
+    (actorActingSkill * 0.1)
   );
 
   // Audience Score Formula:
@@ -25,10 +35,10 @@ export const generateReviews = (movie, script, director, leadActor, crewTeam) =>
   // Director Reputation → 20%
   // Movie Quality → 20%
   const audienceScore = Math.round(
-    (leadActor.popularity * 0.35) +
-    (script.audienceAppeal * 0.25) +
-    (director.reputation * 0.2) +
-    (movie.quality * 0.2)
+    (actorPopularity * 0.35) +
+    (scriptAudienceAppeal * 0.25) +
+    (directorReputation * 0.2) +
+    (movieQuality * 0.2)
   );
 
   return {

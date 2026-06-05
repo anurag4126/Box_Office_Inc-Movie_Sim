@@ -128,7 +128,7 @@ export const generateDirector = (forcedAge = null) => {
   };
 };
 
-export const generateDirectors = (count = 100) => {
+export const generateDirectors = (count = 50) => {
   const targetYoungDirectors = Math.floor(count * 0.2);
   const targetMidCareerDirectors = Math.floor(count * 0.7);
   const targetVeteranDirectors = count - targetYoungDirectors - targetMidCareerDirectors;

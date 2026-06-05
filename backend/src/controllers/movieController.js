@@ -6,12 +6,13 @@ import { generateBoxOffice } from "../services/simulation/engines/boxOfficeEngin
 import { processCareerImpact } from "../services/simulation/engines/careerImpactEngine.js";
 import { processStudioGrowth } from "../services/simulation/engines/studioGrowthEngine.js";
 import { addNotification } from "../services/simulation/helpers/notificationHelper.js";
+import { MARKETING_CAMPAIGNS } from "../constants/marketingCampaigns.js";
 
 const findGameState = async (userId) => GameState.findOne({ user: userId });
 
 export const createMovie = async (req, res) => {
   try {
-    const { title, scriptId, directorId, leadActorId, supportingActorIds, marketingBudget } = req.body;
+    const { title, scriptId, directorId, leadActorId, supportingActorIds, marketingCampaignIds } = req.body;
 
     if (!title || !scriptId || !directorId || !leadActorId || !req.body.crewTeamId) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
@@ -45,6 +46,22 @@ export const createMovie = async (req, res) => {
     if (!crewTeam) return res.status(404).json({ success: false, message: "Crew team not found" });
     if (crewTeam.status !== "AVAILABLE") return res.status(400).json({ success: false, message: "Crew team is busy" });
 
+    // Calculate Marketing Budget and Hype Boost
+    let marketingBudget = 0;
+    let marketingHypeBoost = 0;
+    const selectedCampaigns = [];
+
+    if (marketingCampaignIds && Array.isArray(marketingCampaignIds)) {
+        marketingCampaignIds.forEach(cid => {
+            const campaign = MARKETING_CAMPAIGNS.find(c => c.id === cid);
+            if (campaign) {
+                marketingBudget += campaign.cost;
+                marketingHypeBoost += campaign.hypeBoost;
+                selectedCampaigns.push(cid);
+            }
+        });
+    }
+
     // Validate Studio Money for Marketing Budget
     if (studio.money < (marketingBudget || 0)) {
         return res.status(400).json({ success: false, message: "Insufficient funds for marketing" });
@@ -60,12 +77,10 @@ export const createMovie = async (req, res) => {
     );
 
     // Hype = Lead Actor Popularity + Director Reputation + Marketing Budget influence
-    // For now, let's normalize marketing budget influence. e.g., 100k = +10 hype, 1M = +30 hype
-    const marketingHype = Math.min(40, Math.floor(Math.log10((marketingBudget || 0) + 1) * 5));
     const hype = Math.min(100, Math.round(
       (leadActor.popularity * 0.4) +
       (director.reputation * 0.3) +
-      marketingHype
+      marketingHypeBoost
     ));
 
     const movie = await Movie.create({
@@ -77,7 +92,8 @@ export const createMovie = async (req, res) => {
       supportingActorIds: supportingActorIds || [],
       crewTeamId: crewTeam.id,
       budget: 0, // Will accumulate or be set
-      marketingBudget: marketingBudget || 0,
+      marketingBudget,
+      marketingCampaigns: selectedCampaigns,
       quality,
       hype,
       status: "PRE_PRODUCTION",
@@ -115,10 +131,10 @@ export const createMovie = async (req, res) => {
 
 export const getActiveMovies = async (req, res) => {
     try {
-        const gameState = await findGameState(req.user._id);
+        const gameState = await GameState.findOne({ user: req.user._id }).select("activeMovies").lean();
         if (!gameState) return res.status(404).json({ success: false, message: "Game state not found" });
 
-        const movies = await Movie.find({ _id: { $in: gameState.activeMovies } });
+        const movies = await Movie.find({ _id: { $in: gameState.activeMovies } }).lean();
         res.status(200).json({ success: true, movies });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -166,11 +182,35 @@ export const releaseMovie = async (req, res) => {
         // 4. Update Careers
         processCareerImpact(gameState, movie, writer, director, leadActor, crewTeam);
 
-        // 5. Finalize Movie Status
+        // 5. Release Talent (Set back to AVAILABLE)
+        if (director) {
+            director.status = "AVAILABLE";
+            director.busyUntilWeek = null;
+        }
+        if (leadActor) {
+            leadActor.status = "AVAILABLE";
+            leadActor.busyUntilWeek = null;
+        }
+        if (crewTeam) {
+            crewTeam.status = "AVAILABLE";
+            crewTeam.busyUntilWeek = null;
+        }
+        // Supporting Actors
+        if (movie.supportingActorIds && movie.supportingActorIds.length > 0) {
+            movie.supportingActorIds.forEach(actorId => {
+                const sActor = gameState.ownedActors.find(a => a.id === actorId);
+                if (sActor) {
+                    sActor.status = "AVAILABLE";
+                    sActor.busyUntilWeek = null;
+                }
+            });
+        }
+
+        // 6. Finalize Movie Status
         movie.status = "RELEASED";
         movie.releaseWeek = gameState.currentWeek;
 
-        // Move to history in GameState if needed (already stored in Movie collection, but GameState might have a ref array)
+        // Move to history in GameState if needed
         if (!gameState.movieHistory) gameState.movieHistory = [];
         gameState.movieHistory.push(movie._id);
 
@@ -194,11 +234,12 @@ export const releaseMovie = async (req, res) => {
 
 export const getReleasedMovies = async (req, res) => {
     try {
-        const gameState = await findGameState(req.user._id);
-        if (!gameState) return res.status(404).json({ success: false, message: "Game state not found" });
+        const studio = await Studio.findOne({ owner: req.user._id }).select("_id").lean();
+        if (!studio) return res.status(404).json({ success: false, message: "Studio not found" });
 
-        const movies = await Movie.find({ studioId: gameState.studioId || { $exists: true }, status: "RELEASED" })
-            .sort({ createdAt: -1 });
+        const movies = await Movie.find({ studioId: studio._id, status: "RELEASED" })
+            .sort({ createdAt: -1 })
+            .lean();
 
         res.status(200).json({ success: true, movies });
     } catch (error) {
