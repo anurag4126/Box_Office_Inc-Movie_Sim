@@ -1,7 +1,19 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import { DollarSign, Star, Users, Building, Calendar } from "lucide-react";
+import { 
+  DollarSign, 
+  Star, 
+  Users, 
+  Building, 
+  Calendar, 
+  Film, 
+  TrendingUp, 
+  Trophy,
+  Clock,
+  Zap,
+  CheckCircle2
+} from "lucide-react";
 
 import api from "../../api/axios";
 import { setUser } from "../../features/auth/authSlice";
@@ -16,6 +28,7 @@ const Dashboard = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [simulationSummary, setSimulationSummary] = useState(null);
   const [customWeeks, setCustomWeeks] = useState(1);
+  const [notifications, setNotifications] = useState([]);
   const { user } = useSelector((state) => state.auth);
 
   const currentYear = Math.floor((user?.currentWeek || 1) / 52) + 1;
@@ -25,14 +38,23 @@ const Dashboard = () => {
     const fetchUser = async () => {
       try {
         const res = await api.get("/auth/me");
-
         dispatch(setUser(res.data.user));
       } catch (error) {
         console.error(error);
       }
     };
 
+    const fetchNotifications = async () => {
+      try {
+        const res = await api.get("/notifications");
+        setNotifications(res.data.notifications || []);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     fetchUser();
+    fetchNotifications();
   }, [dispatch]);
 
   const runSimulation = async (weeks) => {
@@ -46,12 +68,34 @@ const Dashboard = () => {
       // Refresh user data to show new stats
       const userRes = await api.get("/auth/me");
       dispatch(setUser(userRes.data.user));
+      
+      // Refresh notifications
+      const notifRes = await api.get("/notifications");
+      setNotifications(notifRes.data.notifications || []);
     } catch (error) {
       alert(error?.response?.data?.message || "Simulation failed");
     } finally {
       setLoading(false);
     }
   };
+
+  const getEventIcon = (message) => {
+    const lowerMessage = message.toLowerCase();
+    if (lowerMessage.includes('movie') || lowerMessage.includes('film')) return <Film className="text-violet-400" size={20} />;
+    if (lowerMessage.includes('prestige') || lowerMessage.includes('award')) return <Trophy className="text-yellow-400" size={20} />;
+    if (lowerMessage.includes('money') || lowerMessage.includes('profit')) return <TrendingUp className="text-green-400" size={20} />;
+    if (lowerMessage.includes('fan')) return <Users className="text-blue-400" size={20} />;
+    if (lowerMessage.includes('week') || lowerMessage.includes('simulation')) return <Calendar className="text-purple-400" size={20} />;
+    return <CheckCircle2 className="text-slate-400" size={20} />;
+  };
+
+  const recentEvents = notifications.length > 0 
+    ? notifications.slice(0, 5) 
+    : [
+        { _id: '1', message: '🎬 Welcome to CineVerse Empire', createdAt: new Date().toISOString(), read: false },
+        { _id: '2', message: '🏢 Studio Founded', createdAt: new Date().toISOString(), read: false },
+        { _id: '3', message: '📅 Week 1 Started', createdAt: new Date().toISOString(), read: false }
+      ];
 
   return (
     <DashboardLayout>
@@ -119,65 +163,101 @@ const Dashboard = () => {
             </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-          <StatCard
-            title="Money"
-            value={`₹${user?.studio?.money ?? 0}`}
-            icon={<DollarSign />}
-          />
+        {/* Studio Overview Redesigned */}
+        <div className="bg-[#111827] rounded-2xl p-6 border border-slate-800">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <Building className="text-violet-400" />
+            Studio Overview
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* Studio Name Card */}
+            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700 hover:border-violet-500 transition">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-violet-600/20 p-2 rounded-lg">
+                  <Building className="text-violet-400" size={20} />
+                </div>
+                <span className="text-slate-400 text-sm font-medium">Studio Name</span>
+              </div>
+              <h3 className="text-xl font-bold text-white">{user?.studio?.name || 'My Studio'}</h3>
+            </div>
 
-          <StatCard
-            title="Prestige"
-            value={user?.studio?.prestige ?? 0}
-            icon={<Star />}
-          />
+            {/* Money Card */}
+            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700 hover:border-green-500 transition">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-green-600/20 p-2 rounded-lg">
+                  <DollarSign className="text-green-400" size={20} />
+                </div>
+                <span className="text-slate-400 text-sm font-medium">Money</span>
+              </div>
+              <h3 className="text-xl font-bold text-white">₹{user?.studio?.money?.toLocaleString() || 0}</h3>
+            </div>
 
-          <StatCard
-            title="Fans"
-            value={user?.studio?.fans ?? 0}
-            icon={<Users />}
-          />
+            {/* Prestige Card */}
+            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700 hover:border-yellow-500 transition">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-yellow-600/20 p-2 rounded-lg">
+                  <Star className="text-yellow-400" size={20} />
+                </div>
+                <span className="text-slate-400 text-sm font-medium">Prestige</span>
+              </div>
+              <h3 className="text-xl font-bold text-white">{user?.studio?.prestige?.toLocaleString() || 0}</h3>
+            </div>
 
-          <StatCard
-            title="Studio Level"
-            value={user?.studio?.studioLevel ?? 1}
-            icon={<Building />}
-          />
-        </div>
+            {/* Fans Card */}
+            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700 hover:border-blue-500 transition">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-blue-600/20 p-2 rounded-lg">
+                  <Users className="text-blue-400" size={20} />
+                </div>
+                <span className="text-slate-400 text-sm font-medium">Fans</span>
+              </div>
+              <h3 className="text-xl font-bold text-white">{user?.studio?.fans?.toLocaleString() || 0}</h3>
+            </div>
 
-        {/* Bottom Grid */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="bg-[#111827] rounded-2xl p-6 border border-slate-800">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Studio Overview
-            </h2>
-
-            <div className="space-y-3 text-slate-300">
-              <p>Studio: {user?.studio?.name}</p>
-
-              <p>Money: ₹{user?.studio?.money}</p>
-
-              <p>Prestige: {user?.studio?.prestige}</p>
-
-              <p>Fans: {user?.studio?.fans}</p>
-
-              <p>Level: {user?.studio?.studioLevel}</p>
+            {/* Studio Level Card */}
+            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700 hover:border-purple-500 transition">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-purple-600/20 p-2 rounded-lg">
+                  <Zap className="text-purple-400" size={20} />
+                </div>
+                <span className="text-slate-400 text-sm font-medium">Level</span>
+              </div>
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <span className="bg-violet-600 px-2 py-0.5 rounded text-sm">{user?.studio?.studioLevel || 1}</span>
+              </h3>
             </div>
           </div>
+        </div>
 
-          <div className="bg-[#111827] rounded-2xl p-6 border border-slate-800">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Recent Events
-            </h2>
-
-            <div className="space-y-4 text-slate-300">
-              <div>🎬 Welcome to CineVerse Empire</div>
-
-              <div>🏢 Studio Founded</div>
-
-              <div>📅 Week 1 Started</div>
-            </div>
+        {/* Recent Events Timeline */}
+        <div className="bg-[#111827] rounded-2xl p-6 border border-slate-800">
+          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <Clock className="text-violet-400" />
+            Recent Events
+          </h2>
+          
+          <div className="space-y-4">
+            {recentEvents.map((event, index) => (
+              <div 
+                key={event._id} 
+                className="flex gap-4 items-start hover:bg-slate-900/30 p-3 rounded-xl transition cursor-pointer"
+              >
+                <div className={`flex-shrink-0 mt-1 ${event.read ? 'bg-slate-800' : 'bg-violet-600/30'} p-2 rounded-full`}>
+                  {getEventIcon(event.message)}
+                </div>
+                
+                <div className="flex-1 border-l-2 border-slate-700 pl-4">
+                  <p className="text-white font-medium">
+                    {event.message}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                    <Clock size={12} />
+                    {new Date(event.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
