@@ -14,6 +14,7 @@
  *
  * No database calls are made; the caller persists the mutated documents.
  */
+import { VERDICTS } from "../../../constants/verdicts.js";
 
 /**
  * Applies career-impact side-effects to all talent involved in a movie release.
@@ -55,13 +56,13 @@
  * @returns {void}
  */
 export const processCareerImpact = (gameState, movie, writer, director, leadActor, crewTeam) => {
-  const isHit = movie.verdict === "HIT";
-  const isBlockbuster = movie.verdict === "BLOCKBUSTER";
-  const isLegendary = movie.verdict === "LEGENDARY";
-  const isFlop = movie.verdict === "FLOP";
-  const isDisaster = movie.verdict === "DISASTER";
+  const isHit = movie.verdict === VERDICTS.HIT;
+  const isBlockbuster = movie.verdict === VERDICTS.BLOCKBUSTER;
+  const isAllTimeBlockbuster = movie.verdict === VERDICTS.ALL_TIME_BLOCKBUSTER;
+  const isFlop = movie.verdict === VERDICTS.FLOP;
+  const isDisaster = movie.verdict === VERDICTS.DISASTER;
 
-  const isSuccess = isHit || isBlockbuster || isLegendary;
+  const isSuccess = isHit || isBlockbuster || isAllTimeBlockbuster;
   const isFailure = isFlop || isDisaster;
 
   /**
@@ -77,7 +78,7 @@ export const processCareerImpact = (gameState, movie, writer, director, leadActo
 
     // Reputation/Popularity change
     let repChange = 0;
-    if (isLegendary) repChange = 15;
+    if (isAllTimeBlockbuster) repChange = 15;
     else if (isBlockbuster) repChange = 10;
     else if (isHit) repChange = 5;
     else if (isFlop) repChange = -5;
@@ -98,7 +99,7 @@ export const processCareerImpact = (gameState, movie, writer, director, leadActo
     // BLOCKBUSTER: Large increase
     // ALL TIME BLOCKBUSTER: Major increase
     let salaryMultiplier = 1.0;
-    if (isLegendary) salaryMultiplier = 1.5; // 50%
+    if (isAllTimeBlockbuster) salaryMultiplier = 1.5; // 50%
     else if (isBlockbuster) salaryMultiplier = 1.25; // 25%
     else if (isHit) salaryMultiplier = 1.1; // 10%
     else if (isFlop) salaryMultiplier = 0.9; // -10%

@@ -1,6 +1,7 @@
 import { X, TrendingUp, Star, Bell, Calendar, Swords, Trophy } from "lucide-react";
 
 const VERDICT_COLORS = {
+  ALL_TIME_BLOCKBUSTER: { bg: "bg-yellow-500/20",  text: "text-yellow-400",  border: "border-yellow-500/40" },
   LEGENDARY:   { bg: "bg-yellow-500/20",  text: "text-yellow-400",  border: "border-yellow-500/40" },
   BLOCKBUSTER: { bg: "bg-orange-500/20",  text: "text-orange-400",  border: "border-orange-500/40" },
   HIT:         { bg: "bg-green-500/20",   text: "text-green-400",   border: "border-green-500/40"  },

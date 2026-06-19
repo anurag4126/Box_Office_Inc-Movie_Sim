@@ -10,6 +10,7 @@
 // ---------------------------------------------------------------------------
 
 import { addNotification } from "../helpers/notificationHelper.js";
+import { VERDICTS } from "../../../constants/verdicts.js";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -101,12 +102,12 @@ const generateMovieTitle = () =>
   `${pick(TITLE_PREFIXES)} ${pick(TITLE_NOUNS)}`;
 
 const getRivalVerdict = (roi) => {
-  if (roi < -0.4) return "DISASTER";
-  if (roi < 0)    return "FLOP";
-  if (roi <= 0.3) return "AVERAGE";
-  if (roi <= 1.0) return "HIT";
-  if (roi <= 3.0) return "BLOCKBUSTER";
-  return "LEGENDARY";
+  if (roi < -0.4) return VERDICTS.DISASTER;
+  if (roi < 0)    return VERDICTS.FLOP;
+  if (roi <= 0.3) return VERDICTS.AVERAGE;
+  if (roi <= 1.0) return VERDICTS.HIT;
+  if (roi <= 3.0) return VERDICTS.BLOCKBUSTER;
+  return VERDICTS.ALL_TIME_BLOCKBUSTER;
 };
 
 // ---------------------------------------------------------------------------
@@ -193,9 +194,9 @@ export const processRivalStudios = (gameState) => {
 
         // Notification
         const emoji =
-          release.verdict === "BLOCKBUSTER" || release.verdict === "LEGENDARY"
+          release.verdict === VERDICTS.BLOCKBUSTER || release.verdict === VERDICTS.ALL_TIME_BLOCKBUSTER
             ? "💥"
-            : release.verdict === "HIT"
+            : release.verdict === VERDICTS.HIT
             ? "🎉"
             : release.verdict === "FLOP" || release.verdict === "DISASTER"
             ? "💸"
@@ -249,11 +250,11 @@ const _releaseRivalMovie = (rival, movie, currentWeek) => {
 
   // Prestige gain
   const prestigeGain =
-    verdict === "LEGENDARY"  ? rand(25, 40) :
-    verdict === "BLOCKBUSTER"? rand(15, 25) :
-    verdict === "HIT"        ? rand(8,  15) :
-    verdict === "AVERAGE"    ? rand(2,  8)  :
-    verdict === "FLOP"       ? -rand(3, 8)  :
+    verdict === VERDICTS.ALL_TIME_BLOCKBUSTER ? rand(25, 40) :
+    verdict === VERDICTS.BLOCKBUSTER? rand(15, 25) :
+    verdict === VERDICTS.HIT        ? rand(8,  15) :
+    verdict === VERDICTS.AVERAGE    ? rand(2,  8)  :
+    verdict === VERDICTS.FLOP       ? -rand(3, 8)  :
     -rand(8, 15); // DISASTER
 
   // Update rival
@@ -273,10 +274,10 @@ const _releaseRivalMovie = (rival, movie, currentWeek) => {
   rival.stats.totalRevenue = (rival.stats.totalRevenue || 0) + boxOffice;
   rival.stats.totalFansEarned = (rival.stats.totalFansEarned || 0) + fanGain;
 
-  if (verdict === "HIT")         rival.stats.hits = (rival.stats.hits || 0) + 1;
-  if (verdict === "BLOCKBUSTER" || verdict === "LEGENDARY")
+  if (verdict === VERDICTS.HIT)         rival.stats.hits = (rival.stats.hits || 0) + 1;
+  if (verdict === VERDICTS.BLOCKBUSTER || verdict === VERDICTS.ALL_TIME_BLOCKBUSTER)
     rival.stats.blockbusters = (rival.stats.blockbusters || 0) + 1;
-  if (verdict === "FLOP" || verdict === "DISASTER")
+  if (verdict === VERDICTS.FLOP || verdict === VERDICTS.DISASTER)
     rival.stats.flops = (rival.stats.flops || 0) + 1;
 
   // History (cap at 20 entries)
