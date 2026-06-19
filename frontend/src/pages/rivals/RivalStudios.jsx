@@ -22,6 +22,7 @@ const PERSONALITY_META = {
 };
 
 const VERDICT_STYLE = {
+  ALL_TIME_BLOCKBUSTER: { text: "text-yellow-400",  bg: "bg-yellow-500/20",  label: "✨ ALL-TIME BLOCKBUSTER" },
   LEGENDARY:   { text: "text-yellow-400",  bg: "bg-yellow-500/20",  label: "✨ LEGENDARY"   },
   BLOCKBUSTER: { text: "text-orange-400",  bg: "bg-orange-500/20",  label: "💥 BLOCKBUSTER" },
   HIT:         { text: "text-green-400",   bg: "bg-green-500/20",   label: "🎉 HIT"          },

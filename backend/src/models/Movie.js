@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { VERDICT_LIST } from "../constants/verdicts.js";
 
 const movieSchema = new mongoose.Schema(
   {
@@ -29,7 +30,7 @@ const movieSchema = new mongoose.Schema(
     worldwideGross: { type: Number, default: 0 },
     profit: { type: Number, default: 0 },
     roi: { type: Number, default: 0 },
-    verdict: { type: String, default: "N/A" },
+    verdict: { type: String, enum: [...VERDICT_LIST, "N/A"], default: "N/A" },
 
     status: {
       type: String,

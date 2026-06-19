@@ -66,15 +66,16 @@
  */
 import { addNotification } from "../helpers/notificationHelper.js";
 import { computeMarketSharePenalty } from "./rivalStudioEngine.js";
+import { VERDICTS } from "../../../constants/verdicts.js";
 
 export const processStudioGrowth = (gameState, studio, movie) => {
-  const isHit = movie.verdict === "HIT";
-  const isBlockbuster = movie.verdict === "BLOCKBUSTER";
-  const isLegendary = movie.verdict === "LEGENDARY";
-  const isFlop = movie.verdict === "FLOP";
-  const isDisaster = movie.verdict === "DISASTER";
+  const isHit = movie.verdict === VERDICTS.HIT;
+  const isBlockbuster = movie.verdict === VERDICTS.BLOCKBUSTER;
+  const isAllTimeBlockbuster = movie.verdict === VERDICTS.ALL_TIME_BLOCKBUSTER;
+  const isFlop = movie.verdict === VERDICTS.FLOP;
+  const isDisaster = movie.verdict === VERDICTS.DISASTER;
 
-  const isSuccess = isHit || isBlockbuster || isLegendary;
+  const isSuccess = isHit || isBlockbuster || isAllTimeBlockbuster;
   const isFailure = isFlop || isDisaster;
 
   // Ensure stats object exists
@@ -117,7 +118,7 @@ export const processStudioGrowth = (gameState, studio, movie) => {
   s.moviesReleased += 1;
   if (isHit) s.hits += 1;
   if (isBlockbuster) s.blockbusters += 1;
-  if (isLegendary) s.allTimeBlockbusters += 1;
+  if (isAllTimeBlockbuster) s.allTimeBlockbusters += 1;
   if (isFlop) s.flops += 1;
   if (isDisaster) s.disasters += 1;
 
