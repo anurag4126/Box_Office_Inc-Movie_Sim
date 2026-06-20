@@ -13,6 +13,7 @@ import {
   Scale,
   IndianRupee,
   X,
+  Newspaper,
 } from "lucide-react";
 
 import { Link, useLocation } from "react-router-dom";
@@ -25,6 +26,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       name: "Dashboard",
       path: "/",
       icon: LayoutDashboard,
+    },
+    {
+      name: "Industry News",
+      path: "/news",
+      icon: Newspaper,
     },
     {
       name: "Movies",

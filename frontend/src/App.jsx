@@ -29,6 +29,7 @@ import WriterProfile from "./pages/writers/WriterProfile";
 import Notifications from "./pages/notifications/Notifications";
 import Settings from "./pages/settings/Settings";
 import AuthMonitoring from "./pages/auth/AuthMonitoring";
+import NewsFeed from "./pages/news/NewsFeed";
 import Toast from "./components/common/Toast";
 
 function App() {
@@ -222,6 +223,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/news"
+          element={
+            <ProtectedRoute>
+              <NewsFeed />
             </ProtectedRoute>
           }
         />
