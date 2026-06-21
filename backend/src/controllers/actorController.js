@@ -6,6 +6,7 @@ import {
   calculateActorCompensation,
   calculateActorFanLoss,
 } from "../services/actor/actorContractService.js";
+import Notification from "../models/Notification.js";
 
 const ACTOR_MARKET_SIZE = 1000;
 
@@ -107,7 +108,8 @@ export const hireActor = async (req, res) => {
     gameState.ownedActors = gameState.ownedActors || [];
     gameState.ownedActors.push(actor);
 
-    gameState.notifications.push({
+    await Notification.create({
+      gameStateId: gameState._id,
       message: `${actor.name} has joined your studio.`,
       createdAt: new Date(),
     });
@@ -227,7 +229,8 @@ export const fireActor = async (req, res) => {
     gameState.marketActors = gameState.marketActors || [];
     gameState.marketActors.push(actor);
 
-    gameState.notifications.push({
+    await Notification.create({
+      gameStateId: gameState._id,
       message: `${actor.name} has been released.`,
       createdAt: new Date(),
     });

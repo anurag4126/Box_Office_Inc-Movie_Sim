@@ -1,6 +1,7 @@
 import GameState from "../models/GameState.js";
 import Studio from "../models/Studio.js";
 import { generateCrewTeams } from "../services/crew/crewGenerator.js";
+import Notification from "../models/Notification.js";
 
 const findGameState = async (userId) => GameState.findOne({ user: userId });
 
@@ -49,7 +50,8 @@ export const hireCrewTeam = async (req, res) => {
     gameState.ownedCrewTeams = gameState.ownedCrewTeams || [];
     gameState.ownedCrewTeams.push(hiredCrew);
 
-    gameState.notifications.push({
+    await Notification.create({
+      gameStateId: gameState._id,
       message: `${hiredCrew.name} has been hired.`,
       createdAt: new Date(),
     });
@@ -101,7 +103,8 @@ export const fireCrewTeam = async (req, res) => {
     gameState.ownedCrewTeams.splice(index, 1);
     gameState.marketCrewTeams.push(firedCrew);
 
-    gameState.notifications.push({
+    await Notification.create({
+      gameStateId: gameState._id,
       message: `${firedCrew.name} has been fired.`,
       createdAt: new Date(),
     });

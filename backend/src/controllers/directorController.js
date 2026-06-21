@@ -12,6 +12,7 @@ import {
   createDirectingProject,
   ensureScriptsProductionDefaults,
 } from "../services/director/directingProjectService.js";
+import Notification from "../models/Notification.js";
 
 const findGameState = async (userId) => GameState.findOne({ user: userId });
 
@@ -215,7 +216,8 @@ export const startDirectingProject = async (req, res) => {
     gameState.activeDirectorProjects = gameState.activeDirectorProjects || [];
     gameState.activeDirectorProjects.push(project);
 
-    gameState.notifications.push({
+    await Notification.create({
+      gameStateId: gameState._id,
       message: `${director.name} started directing ${script.title}.`,
       createdAt: new Date(),
     });
@@ -312,7 +314,8 @@ export const hireDirector = async (req, res) => {
     gameState.marketDirectors.splice(index, 1);
     gameState.ownedDirectors.push(director);
 
-    gameState.notifications.push({
+    await Notification.create({
+      gameStateId: gameState._id,
       message: `${director.name} was hired as a director.`,
     });
 
@@ -389,7 +392,8 @@ export const fireDirector = async (req, res) => {
     gameState.ownedDirectors.splice(index, 1);
     gameState.marketDirectors.push(director);
 
-    gameState.notifications.push({
+    await Notification.create({
+      gameStateId: gameState._id,
       message: `${director.name} was released to the director market. Compensation ₹${compensation.toLocaleString("en-IN")} paid and ${fanLoss} fans lost.`,
     });
 
@@ -500,7 +504,8 @@ export const replaceDirector = async (req, res) => {
       oldDirector.busyUntilWeek = null;
     }
 
-    gameState.notifications.push({
+    await Notification.create({
+      gameStateId: gameState._id,
       message: `${oldDirector?.name || "A director"} was replaced by ${newDirector.name} on ${project.movieName || "an active production"}. Movie quality -${penalty}.`,
     });
 
