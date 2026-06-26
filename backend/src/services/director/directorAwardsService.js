@@ -1,3 +1,4 @@
+import { addTalentHistory } from "../simulation/helpers/historyHelper.js";
 import { addNotification } from "../simulation/helpers/notificationHelper.js";
 
 const AWARD_GENRES = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi"];
@@ -253,8 +254,7 @@ const applyDirectorAward = ({ award, studio, gameState }) => {
   const nextSalary = Math.round(previousSalary * (1 + award.salaryIncreaseRate));
 
   director.awards = toNumber(director.awards) + 1;
-  director.awardsHistory = director.awardsHistory || [];
-  director.awardsHistory.push({
+  addTalentHistory(gameState, director.id, "AWARD", {
     awardName: award.awardName,
     category: award.category,
     movieId: award.movieId,
@@ -267,8 +267,7 @@ const applyDirectorAward = ({ award, studio, gameState }) => {
   director.reputation = clamp(toNumber(director.reputation) + award.prestigeValue, 0, 100);
   director.salary = nextSalary;
   director.marketValue = Math.round(toNumber(director.marketValue) + nextSalary * award.salaryIncreaseRate + award.prestigeValue * 100000);
-  director.salaryHistory = director.salaryHistory || [];
-  director.salaryHistory.push({
+  addTalentHistory(gameState, director.id, "SALARY", {
     week: gameState.currentWeek,
     salary: nextSalary,
     reason: `${award.awardName} Award Increase`,
