@@ -332,7 +332,7 @@ export const releaseMovie = async (req, res) => {
         // this movie's genres, its multiplier boosts or dampens the gross.
         const activeTrends = gameState.marketTrends?.activeTrends || [];
         const marketMultiplier = getGenreMultiplier(activeTrends, script?.genres);
-        const boxOffice = generateBoxOffice(movie, leadActor, director, marketMultiplier);
+        const boxOffice = generateBoxOffice(movie, leadActor, director, marketMultiplier, script?.genres);
         Object.assign(movie, boxOffice);
 
         // 3. Update Studio Growth (Money handled here, Fans/Prestige inside)

@@ -74,7 +74,6 @@ const ReleasedMovieDetail = () => {
                     <h3 className="text-xl font-bold text-white uppercase italic flex items-center gap-2 border-b border-slate-800 pb-4">
                         <TrendingUp className="text-violet-500" /> {movie.releaseType === 'STREAMING' ? 'Streaming Deal' : 'Box Office'}
                     </h3>
-                    
                     {movie.releaseType === 'STREAMING' ? (
                       <div className="space-y-6">
                           <div>
@@ -104,6 +103,19 @@ const ReleasedMovieDetail = () => {
                               <div className="text-slate-500 text-[10px] font-bold uppercase mb-1">International Gross</div>
                               <div className="text-2xl font-bold text-white">₹{movie.internationalGross?.toLocaleString()}</div>
                           </div>
+                          {movie.regionalGross && Object.keys(movie.regionalGross).length > 0 && (
+                              <div className="pt-4 border-t border-slate-800">
+                                  <div className="text-slate-500 text-[10px] font-bold uppercase mb-2">Regional Breakdown</div>
+                                  <div className="space-y-2">
+                                      {Object.entries(movie.regionalGross).map(([region, gross]) => (
+                                          <div key={region} className="flex justify-between items-center text-xs">
+                                              <span className="text-slate-400">{region.replace(/_/g, ' ')}</span>
+                                              <span className="text-white font-bold">₹{gross.toLocaleString()}</span>
+                                          </div>
+                                      ))}
+                                  </div>
+                              </div>
+                          )}
                           <div className="pt-4 border-t border-slate-800">
                               <div className="text-slate-500 text-[10px] font-bold uppercase mb-1">Worldwide Gross</div>
                               <div className="text-3xl font-black text-violet-400">₹{movie.worldwideGross?.toLocaleString()}</div>

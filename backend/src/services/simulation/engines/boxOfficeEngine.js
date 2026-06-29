@@ -11,6 +11,7 @@
  * persisting the returned values back to the movie document.
  */
 
+import { REGIONS } from "../../../constants/regions.js";
 import { VERDICTS } from "../../../constants/verdicts.js";
 
 /**
@@ -75,6 +76,59 @@ const getVerdict = (roi) => {
  * @param {object} director               - The director (currently unused, reserved for future expansions).
  * @param {number} [marketMultiplier=1]   - Combined genre-trend multiplier from trendEngine.
  *                                          Values > 1 boost; values < 1 dampen box office.
+ * @param {Array} [genres=[]]             - Array of movie genres for regional preferences.
+ * @returns {{
+ *   openingWeekend: number,
+ *   domesticGross: number,
+ *   internationalGross: number,
+ *   worldwideGross: number,
+ *   boxOffice: number,
+ *   profit: number,
+ *   roi: number,
+ *   verdict: string
+ * }} Full box-office breakdown.
+ */
+export const generateBoxOffice = (movie, leadActor, director, marketMultiplier = 1, genres = []) => {
+=======
+/**
+ * Generates the full box-office result for a movie release.
+ *
+ * ## Calculation Flow
+ *
+ * 1. **Opening Weekend**
+ *    - Base: Scaled based on production budget
+ *    - + Star Power: actor popularity mapped to budget scale
+ *    - + Marketing Boost: scaled by marketing budget
+ *    - × Hype factor and a random variance
+ *    - × `marketMultiplier` (genre trend; defaults to 1 — neutral)
+ *
+ * 2. **Worldwide Gross**
+ *    - Opening Weekend × a "legs" factor driven by audience score
+ *      and critic score, representing how long the film stays in cinemas.
+ *    - An additional random variance is applied.
+ *
+ * 3. **Domestic / International Split**
+ *    - Domestic = 45% of worldwide gross.
+ *    - International = remaining 55%.
+ *
+ * 4. **Profit & ROI**
+ *    - Profit = worldwideGross − (productionBudget + marketingBudget)
+ *    - ROI    = profit / totalBudget (falls back to gross/1M when budget is 0)
+ *
+ * 5. **Verdict** — derived from ROI via `getVerdict`.
+ *
+ * @param {object} movie - The movie document.
+ * @param {number} movie.quality          - Overall quality score (0–100).
+ * @param {number} movie.criticScore      - Critic score (0–100).
+ * @param {number} movie.audienceScore    - Audience score (0–100).
+ * @param {number} movie.hype             - Pre-release hype level (0–100).
+ * @param {number} [movie.budget=0]       - Production budget in ₹.
+ * @param {number} [movie.marketingBudget=0] - Marketing budget in ₹.
+ * @param {object} leadActor - The lead actor embedded document.
+ * @param {number} leadActor.popularity   - Actor popularity (0–100).
+ * @param {object} director               - The director (currently unused, reserved for future expansions).
+ * @param {number} [marketMultiplier=1]   - Combined genre-trend multiplier from trendEngine.
+ *                                          Values > 1 boost; values < 1 dampen box office.
  * @returns {{
  *   openingWeekend: number,
  *   domesticGross: number,
@@ -87,11 +141,6 @@ const getVerdict = (roi) => {
  * }} Full box-office breakdown.
  */
 export const generateBoxOffice = (movie, leadActor, director, marketMultiplier = 1) => {
-  const qualityFactor = movie.quality / 100;
-  const criticFactor = movie.criticScore / 100;
-  const audienceFactor = movie.audienceScore / 100;
-  const hypeFactor = movie.hype / 100;
-
   // Base potential based on hype and quality
   const basePotential = (hypeFactor * 0.6) + (qualityFactor * 0.4);
 
@@ -118,22 +167,54 @@ export const generateBoxOffice = (movie, leadActor, director, marketMultiplier =
   // Worldwide Gross influenced by Audience Score (legs) and Critic Score (prestige)
   // Legs factor: high audience score means movie stays in theaters longer
   const legs = (audienceFactor * 5) + (criticFactor * 2) + (Math.random() * 2);
-  const worldwideGross = Math.round(openingWeekend * (1.5 + legs) * (0.8 + Math.random() * 0.4));
+  const potentialWorldwideGross = Math.round(openingWeekend * (1.5 + legs) * (0.8 + Math.random() * 0.4));
 
-  const domesticGross = Math.round(worldwideGross * 0.45);
-  const internationalGross = worldwideGross - domesticGross;
+  let worldwideGross = 0;
+  let domesticGross = 0;
+  let internationalGross = 0;
+  const regionalGross = {};
+
+  // Break down into regional grosses
+  for (const [regionKey, regionData] of Object.entries(REGIONS)) {
+    let regionModifier = 1.0;
+    
+    // Apply genre modifiers if any genres match
+    if (genres && genres.length > 0) {
+      let totalGenreMod = 0;
+      let matchedGenres = 0;
+      for (const genre of genres) {
+        if (regionData.genreModifiers[genre]) {
+          totalGenreMod += regionData.genreModifiers[genre];
+          matchedGenres++;
+        }
+      }
+      if (matchedGenres > 0) {
+         // average modifier
+         regionModifier = totalGenreMod / matchedGenres;
+      }
+    }
+
+    const regionGross = Math.round(potentialWorldwideGross * regionData.marketShare * regionModifier);
+    regionalGross[regionKey] = regionGross;
+    worldwideGross += regionGross;
+
+    if (regionKey === "NORTH_AMERICA") {
+        domesticGross += regionGross;
+    } else {
+        internationalGross += regionGross;
+    }
+  }
 
   const totalBudget = (movie.budget || 0) + (movie.marketingBudget || 0);
-  // Instruction: profit = worldwideGross - productionBudget - marketingBudget
-  // Note: Usually studios only get ~50% of box office, but following instructions literally for profit calc
   const profit = worldwideGross - totalBudget;
-  const roi = totalBudget > 0 ? profit / totalBudget : worldwideGross / 1000000; // Fallback if budget 0
+  const roi = totalBudget > 0 ? profit / totalBudget : worldwideGross / 1000000;
 
   return {
     openingWeekend,
     domesticGross,
     internationalGross,
     worldwideGross,
+    regionalGross,
     boxOffice: worldwideGross,
     profit,
     roi,
