@@ -10,6 +10,7 @@ import { processStudioGrowth } from "../services/simulation/engines/studioGrowth
 import { addNotification } from "../services/simulation/helpers/notificationHelper.js";
 import { MARKETING_CAMPAIGNS, getEffectiveHypeBoost } from "../constants/marketingCampaigns.js";
 import { generateMovieTitle } from "../services/movie/movieService.js";
+import { generateNewsFromRelease } from "../services/simulation/engines/newsEngine.js";
 import { withTransaction } from "../utils/transactionHelper.js";
 import Notification from "../models/Notification.js";
 
@@ -378,6 +379,9 @@ export const releaseMovie = async (req, res) => {
         // Notifications
         addNotification(gameState, `"${movie.title}" released! Critic Score: ${movie.criticScore} (${movie.criticLabel})`);
         addNotification(gameState, `"${movie.title}" earned ₹${movie.worldwideGross.toLocaleString()} worldwide. Verdict: ${movie.verdict}`);
+
+        // Generate news article for the release
+        await generateNewsFromRelease(movie, studio, gameState.currentWeek);
 
         // Surface the market climate's effect when it was material.
         if (marketMultiplier > 1.01) {

@@ -8,6 +8,7 @@ import { processMarketTrends } from "./trendEngine.js";
 import { generateRivalStudios, processRivalStudios } from "./rivalStudioEngine.js";
 import { processProductionEvents } from "./eventEngine.js";
 import { processRandomEvents } from "./eventEngine.js";
+import { generateNewsFromTrend, generateNewsFromEvent } from "./newsEngine.js";
 import { processStreamingPlatformGrowth } from "./streamingEngine.js";
 
 import { addNotification } from "../helpers/notificationHelper.js";
@@ -63,6 +64,15 @@ export const processWeeklyTick = async (gameState, studio) => {
   const trendMessages = processMarketTrends(gameState);
   trendMessages.forEach((msg) => addNotification(gameState, msg));
 
+  // Generate news items for newly spawned trends
+  if (gameState.marketTrends && gameState.marketTrends.activeTrends) {
+    for (const trend of gameState.marketTrends.activeTrends) {
+      if (trend.startWeek === gameState.currentWeek) {
+        await generateNewsFromTrend(trend, gameState.currentWeek);
+      }
+    }
+  }
+
   processWriterPayroll(gameState, studio);
 
   await processWritingProjects(gameState, studio);
@@ -105,7 +115,12 @@ export const processWeeklyTick = async (gameState, studio) => {
 
   // 10. Random events — global industry events last so they react to the
   //     week's financial activity.
-  processRandomEvents(gameState, studio);
+  const firedEvents = processRandomEvents(gameState, studio);
+  if (firedEvents && firedEvents.length > 0) {
+    for (const ev of firedEvents) {
+      await generateNewsFromEvent(ev.label, ev.message, gameState.currentWeek);
+    }
+  }
 
   await processStreamingPlatformGrowth(gameState);
 

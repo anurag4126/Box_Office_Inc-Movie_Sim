@@ -13,6 +13,7 @@ import {
   Scale,
   IndianRupee,
   X,
+  Newspaper,
   Swords,
   Trophy,
 } from "lucide-react";
@@ -27,6 +28,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       name: "Dashboard",
       path: "/",
       icon: LayoutDashboard,
+    },
+    {
+      name: "Industry News",
+      path: "/news",
+      icon: Newspaper,
     },
     {
       name: "Rival Studios",
