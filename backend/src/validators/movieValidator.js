@@ -1,8 +1,12 @@
+
 import { z } from "zod";
 
 export const createMovieSchema = {
   body: z.object({
-    title: z.string().min(1, "Title is required"),
+    title: z.string()
+      .trim()
+      .min(1, "Title is required")
+      .max(100, "Title must not exceed 100 characters"),
     scriptId: z.string().min(1, "Script ID is required"),
     directorId: z.string().min(1, "Director ID is required"),
     leadActorId: z.string().min(1, "Lead Actor ID is required"),
@@ -11,7 +15,10 @@ export const createMovieSchema = {
     marketingCampaignIds: z.array(z.string()).optional(),
     franchiseId: z.string().optional(),
     createFranchise: z.boolean().optional(),
-    franchiseName: z.string().optional(),
+    franchiseName: z.string()
+      .trim()
+      .max(50, "Franchise name must not exceed 50 characters")
+      .optional(),
   }),
 };
 

@@ -25,6 +25,7 @@ import StreamingDeals from "./pages/movies/StreamingDeals";
 import StudioStats from "./pages/studio/StudioStats";
 import FinancialHistory from "./pages/studio/FinancialHistory";
 import AwardsHistory from "./pages/studio/AwardsHistory";
+import MarketDashboard from "./pages/dashboard/MarketDashboard";
 import Franchises from "./pages/studio/Franchises";
 import Leaderboard from "./pages/studio/Leaderboard";
 import TalentProfile from "./pages/talent/TalentProfile";
@@ -33,6 +34,7 @@ import WriterProfile from "./pages/writers/WriterProfile";
 import Notifications from "./pages/notifications/Notifications";
 import Settings from "./pages/settings/Settings";
 import AuthMonitoring from "./pages/auth/AuthMonitoring";
+import NewsFeed from "./pages/news/NewsFeed";
 import Toast from "./components/common/Toast";
 import RivalStudios from "./pages/rivals/RivalStudios";
 
@@ -254,6 +256,14 @@ function App() {
           }
         />
         <Route
+          path="/market"
+          element={
+            <ProtectedRoute>
+              <MarketDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/studio/franchises"
           element={
             <ProtectedRoute>
@@ -267,6 +277,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/news"
+          element={
+            <ProtectedRoute>
+              <NewsFeed />
             </ProtectedRoute>
           }
         />
