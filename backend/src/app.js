@@ -19,6 +19,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
 import franchiseRoutes from "./routes/franchiseRoutes.js";
 import streamingRoutes from "./routes/streamingRoutes.js";
+import tvShowRoutes from "./routes/tvShowRoutes.js";
 import rivalStudioRoutes from "./routes/rivalStudioRoutes.js";
 import leaderboardRoutes from "./routes/leaderboardRoutes.js";
 
@@ -59,6 +60,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/franchises", franchiseRoutes);
 app.use("/api/streaming", streamingRoutes);
+app.use("/api/tv-shows", tvShowRoutes);
 app.use("/api/rival-studios", rivalStudioRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 

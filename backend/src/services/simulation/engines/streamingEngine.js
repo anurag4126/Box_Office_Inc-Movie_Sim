@@ -93,3 +93,87 @@ export const processStreamingPlatformGrowth = async (gameState) => {
     platform.contentBudget += 10000000; 
   });
 };
+
+// Weekly royalty rate applied to a streaming deal's original value, paid each
+// week of the exclusivity window on top of the one-time acceptance lump sum.
+const WEEKLY_STREAMING_ROYALTY_RATE = 0.005; // 0.5% of deal value per week
+
+/**
+ * Accrues recurring weekly streaming revenue for a studio's ACCEPTED deals.
+ *
+ * When a movie's streaming deal is accepted, `acceptStreamingDeal` pays a
+ * one-time lump sum and records `movie.releaseWeek`. This function adds the
+ * missing recurring piece: for every accepted-deal movie still inside its
+ * exclusivity window, the studio earns an ongoing royalty each week, scaled by
+ * the hosting platform's current popularity (a healthier platform pays more for
+ * the same title).
+ *
+ * Royalties begin the week AFTER acceptance (`weeksElapsed >= 1`, so the lump
+ * sum and the first royalty never double up on the same week) and stop once the
+ * deal's `exclusiveWeeks` window has elapsed — so revenue is bounded, not
+ * perpetual. The query is scoped by `studioId`, so it only ever pays the
+ * current studio for its own catalogue.
+ *
+ * Mutates `studio.money` in place; the caller (`runWeeklySimulation` →
+ * `simulationController`) persists the studio after the tick. No movie documents
+ * are written and no schema is changed — this reuses the embedded
+ * `streamingDeal` subdoc exactly as it already exists.
+ *
+ * @async
+ * @param {object} gameState - GameState document (provides currentWeek, platforms).
+ * @param {object} studio    - Studio document, mutated in place.
+ * @returns {Promise<number>} Total royalty paid this week (0 if none).
+ */
+export const processStreamingRevenue = async (gameState, studio) => {
+  if (!gameState || !studio) return 0;
+
+  const acceptedMovies = await Movie.find({
+    studioId: studio._id,
+    "streamingDeal.status": "ACCEPTED",
+  })
+    .select("title streamingDeal releaseWeek")
+    .lean();
+
+  if (!acceptedMovies || acceptedMovies.length === 0) return 0;
+
+  const currentWeek = Number(gameState.currentWeek) || 0;
+  let totalRoyalty = 0;
+  let earningTitles = 0;
+
+  for (const movie of acceptedMovies) {
+    const deal = movie.streamingDeal;
+    if (!deal || deal.status !== "ACCEPTED") continue;
+
+    const dealValue = Number(deal.dealValue) || 0;
+    const exclusiveWeeks = Number(deal.exclusiveWeeks) || 0;
+    const releaseWeek = Number(movie.releaseWeek);
+    if (!dealValue || !exclusiveWeeks || Number.isNaN(releaseWeek)) continue;
+
+    // Only pay during the exclusivity window, starting the week after acceptance.
+    const weeksElapsed = currentWeek - releaseWeek;
+    if (weeksElapsed < 1 || weeksElapsed > exclusiveWeeks) continue;
+
+    const platform = (gameState.streamingPlatforms || []).find(
+      (p) => p.id === deal.platformId
+    );
+    const popularityFactor = platform
+      ? 0.5 + (Number(platform.popularity) || 0) / 100
+      : 1;
+
+    const royalty = Math.round(dealValue * WEEKLY_STREAMING_ROYALTY_RATE * popularityFactor);
+    if (royalty > 0) {
+      totalRoyalty += royalty;
+      earningTitles += 1;
+    }
+  }
+
+  if (totalRoyalty > 0) {
+    studio.money += totalRoyalty;
+    addNotification(
+      gameState,
+      `Earned ₹${(totalRoyalty / 1000000).toFixed(2)}M in streaming royalties this week from ${earningTitles} exclusive title${earningTitles === 1 ? "" : "s"}.`
+    );
+  }
+
+  return totalRoyalty;
+};
