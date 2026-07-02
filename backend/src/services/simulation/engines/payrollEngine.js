@@ -28,7 +28,8 @@ import { addNotification } from "../helpers/notificationHelper.js";
  * 3. If `studio.money < totalPayroll`, push a notification warning.
  * 4. Compute `payrollCoverage = min(1, availableMoney / totalPayroll)`.
  * 5. Each talent's `totalEarnings` is incremented by their pro-rated salary.
- * 6. Deduct `totalPayroll` from studio money (floored at 0).
+ * 6. Deduct the amount actually paid out (sum of pro-rated salaries) from
+ *    studio money (floored at 0).
  *
  * No-ops when there is no talent or total payroll is zero.
  *
@@ -73,12 +74,15 @@ export const processWriterPayroll = (gameState, studio) => {
 
   const payrollCoverage = Math.min(1, availableMoney / totalPayroll);
 
+  let totalActuallyPaid = 0;
+
   allTalent.forEach((talent) => {
     const paidSalary = Math.floor(Number(talent.salary || 0) * payrollCoverage);
+    totalActuallyPaid += paidSalary;
     if (talent.totalEarnings !== undefined) {
         talent.totalEarnings = Number(talent.totalEarnings || 0) + paidSalary;
     }
   });
 
-  studio.money = Math.max(0, availableMoney - totalPayroll);
+  studio.money = Math.max(0, availableMoney - totalActuallyPaid);
 };

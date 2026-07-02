@@ -207,6 +207,30 @@ test("payrollEngine: underfunded studio pays partial, floors money at 0, warns",
   );
 });
 
+test("payrollEngine: partial payment deducts only what was actually paid, not the full payroll", () => {
+  const gameState = {
+    ownedWriters: [],
+    ownedDirectors: [],
+    ownedActors: [
+      { salary: 50, totalEarnings: 0 },
+      { salary: 50, totalEarnings: 0 },
+      { salary: 50, totalEarnings: 0 },
+    ],
+    ownedCrewTeams: [],
+  };
+  const studio = { money: 100 }; // payroll = 150, coverage = 100 / 150
+
+  processWriterPayroll(gameState, studio);
+
+  // Each talent is paid floor(50 * 0.6667) = 33, so 99 is actually paid out.
+  // The studio should lose only that 99 and keep the 1 it never spent,
+  // instead of being deducted the full 150 and wiped to 0.
+  assert.strictEqual(gameState.ownedActors[0].totalEarnings, 33);
+  assert.strictEqual(gameState.ownedActors[1].totalEarnings, 33);
+  assert.strictEqual(gameState.ownedActors[2].totalEarnings, 33);
+  assert.strictEqual(studio.money, 1);
+});
+
 test("payrollEngine: no talent is a no-op", () => {
   const gameState = {
     ownedWriters: [],
