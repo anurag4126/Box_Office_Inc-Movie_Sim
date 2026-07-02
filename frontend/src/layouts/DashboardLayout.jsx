@@ -5,6 +5,7 @@ import api from "../api/axios";
 import Sidebar from "../components/common/Sidebar";
 import NotificationBell from "../components/notifications/NotificationBell";
 import NotificationDropdown from "../components/notifications/NotificationDropdown";
+import ThemeToggle from "../components/common/ThemeToggle";
 
 const DashboardLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -91,13 +92,20 @@ const DashboardLayout = ({ children }) => {
             </h1>
           </div>
 
-          <div className="relative" ref={notificationsRef}>
-            <NotificationBell
-              unreadCount={unreadCount}
-              onClick={() => setIsNotificationsOpen((open) => !open)}
-            />
+          <div className="flex items-center gap-3">
+            {/* Theme toggle: always accessible in the top bar */}
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
 
-            {isNotificationsOpen && <NotificationDropdown />}
+            <div className="relative" ref={notificationsRef}>
+              <NotificationBell
+                unreadCount={unreadCount}
+                onClick={() => setIsNotificationsOpen((open) => !open)}
+              />
+
+              {isNotificationsOpen && <NotificationDropdown />}
+            </div>
           </div>
         </header>
 
