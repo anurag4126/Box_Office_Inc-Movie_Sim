@@ -2,8 +2,17 @@ import { Bell } from "lucide-react";
 
 const NotificationBell = ({ unreadCount, onClick }) => {
   return (
-    <button onClick={onClick} className="relative">
-      <Bell size={22} className="text-slate-300" />
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative cursor-pointer"
+      aria-label={
+        unreadCount > 0
+          ? `Notifications, ${unreadCount} unread`
+          : "Notifications"
+      }
+    >
+      <Bell size={22} className="text-slate-300" aria-hidden="true" />
 
       {unreadCount > 0 && (
         <span
