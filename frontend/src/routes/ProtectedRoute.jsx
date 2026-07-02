@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { isRefreshSessionRejected, refreshAuthSession } from "../api/axios";
 import { logout } from "../features/auth/authSlice";
+import api from "../api/axios";
 
 const ProtectedRoute = ({ children }) => {
   const dispatch = useDispatch();
@@ -12,6 +13,9 @@ const ProtectedRoute = ({ children }) => {
   const [sessionRecoveryError, setSessionRecoveryError] = useState(false);
   const [sessionRejected, setSessionRejected] = useState(false);
   const [recoveryAttempt, setRecoveryAttempt] = useState(0);
+  // Guard: wait for studio data to load before rendering child routes
+  const [studioLoading, setStudioLoading] = useState(!!token);
+  const [studioLoaded, setStudioLoaded] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -51,10 +55,46 @@ const ProtectedRoute = ({ children }) => {
     };
   }, [dispatch, recoveryAttempt, token]);
 
+  // After session is confirmed, pre-fetch studio profile so child routes
+  // don't flash with empty state on hard refresh.
+  useEffect(() => {
+    let isMounted = true;
+    if (!token || studioLoaded) return;
+
+    const loadStudioData = async () => {
+      setStudioLoading(true);
+      try {
+        await api.get("/studios/profile");
+      } catch {
+        // Non-fatal: if the studio fetch fails we still proceed.
+        // The individual page will show its own error state.
+      } finally {
+        if (isMounted) {
+          setStudioLoading(false);
+          setStudioLoaded(true);
+        }
+      }
+    };
+
+    loadStudioData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, studioLoaded]);
+
   if (checkingSession) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#020617] text-slate-300">
         Restoring session...
+      </div>
+    );
+  }
+
+  if (studioLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#020617] text-slate-300">
+        Loading your studio...
       </div>
     );
   }
