@@ -26,6 +26,7 @@ import StudioStats from "./pages/studio/StudioStats";
 import FinancialHistory from "./pages/studio/FinancialHistory";
 import MarketDashboard from "./pages/dashboard/MarketDashboard";
 import Franchises from "./pages/studio/Franchises";
+import FranchiseDetail from "./pages/studio/FranchiseDetail";
 import Leaderboard from "./pages/studio/Leaderboard";
 import TalentProfile from "./pages/talent/TalentProfile";
 import DirectorProfile from "./pages/directors/DirectorProfile";
@@ -259,6 +260,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Franchises />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/studio/franchises/:id"
+          element={
+            <ProtectedRoute>
+              <FranchiseDetail />
             </ProtectedRoute>
           }
         />

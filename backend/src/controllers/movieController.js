@@ -7,6 +7,7 @@ import { generateBoxOffice } from "../services/simulation/engines/boxOfficeEngin
 import { getGenreMultiplier } from "../services/simulation/engines/trendEngine.js";
 import { processCareerImpact } from "../services/simulation/engines/careerImpactEngine.js";
 import { processStudioGrowth } from "../services/simulation/engines/studioGrowthEngine.js";
+import { computeFranchiseProgress } from "../services/simulation/engines/franchiseEngine.js";
 import { addNotification } from "../services/simulation/helpers/notificationHelper.js";
 import { MARKETING_CAMPAIGNS, getEffectiveHypeBoost } from "../constants/marketingCampaigns.js";
 import { generateMovieTitle } from "../services/movie/movieService.js";
@@ -335,8 +336,34 @@ export const releaseMovie = async (req, res) => {
         const boxOffice = generateBoxOffice(movie, leadActor, director, marketMultiplier);
         Object.assign(movie, boxOffice);
 
+        // Franchise reputation (read): load the franchise's accumulated shared
+        // fanbase and prestige, earned from prior installments, and feed them into
+        // studio growth so this release benefits from the franchise's track record.
+        // Read within the session for transactional consistency.
+        let franchiseDoc = null;
+        let franchiseModifiers = {};
+        if (movie.franchiseId) {
+            franchiseDoc = await Franchise.findById(movie.franchiseId).session(session);
+            if (franchiseDoc) {
+                franchiseModifiers = {
+                    fanMultiplier: franchiseDoc.fanbaseMultiplier || 1,
+                    prestigeBonus: franchiseDoc.prestigeBonus || 0,
+                };
+            }
+        }
+
         // 3. Update Studio Growth (Money handled here, Fans/Prestige inside)
-        const growth = processStudioGrowth(gameState, studio, movie);
+        const growth = processStudioGrowth(gameState, studio, movie, franchiseModifiers);
+
+        // Franchise reputation (write): fold this installment's outcome into the
+        // franchise's lifetime revenue and accumulated fanbase/prestige. Persisted
+        // with the same session below so it rolls back atomically with the release.
+        if (franchiseDoc) {
+            const progress = computeFranchiseProgress(franchiseDoc, movie);
+            franchiseDoc.fanbaseMultiplier = progress.fanbaseMultiplier;
+            franchiseDoc.prestigeBonus = progress.prestigeBonus;
+            franchiseDoc.totalRevenue = progress.totalRevenue;
+        }
 
         // 4. Update Careers
         processCareerImpact(gameState, movie, writer, director, leadActor, crewTeam);
@@ -401,6 +428,7 @@ export const releaseMovie = async (req, res) => {
             await movie.save({ session });
             await studio.save({ session });
             await gameState.save({ session });
+            if (franchiseDoc) await franchiseDoc.save({ session });
 
             return { movie, growth };
         });

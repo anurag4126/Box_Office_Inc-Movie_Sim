@@ -73,7 +73,11 @@ const Franchises = () => {
               const avgQuality = franchise.movies?.reduce((sum, m) => sum + (m.quality || 0), 0) / (numMovies || 1);
 
               return (
-                <div key={franchise._id} className="bg-[#111827] border border-slate-800 rounded-2xl overflow-hidden hover:border-violet-500/50 transition-all group">
+                <Link
+                  key={franchise._id}
+                  to={`/studio/franchises/${franchise._id}`}
+                  className="bg-[#111827] border border-slate-800 rounded-2xl overflow-hidden hover:border-violet-500/50 transition-all group block"
+                >
                   <div className="p-6">
                     <h3 className="text-xl font-black text-white mb-1 group-hover:text-violet-400 transition">{franchise.name}</h3>
                     <p className="text-sm text-slate-400 mb-4">Established</p>
@@ -115,7 +119,7 @@ const Franchises = () => {
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

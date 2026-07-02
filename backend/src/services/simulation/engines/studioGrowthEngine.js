@@ -68,7 +68,7 @@ import { addNotification } from "../helpers/notificationHelper.js";
 import { computeMarketSharePenalty } from "./rivalStudioEngine.js";
 import { VERDICTS } from "../../../constants/verdicts.js";
 
-export const processStudioGrowth = (gameState, studio, movie) => {
+export const processStudioGrowth = (gameState, studio, movie, franchiseModifiers = {}) => {
   const isHit = movie.verdict === VERDICTS.HIT;
   const isBlockbuster = movie.verdict === VERDICTS.BLOCKBUSTER;
   const isAllTimeBlockbuster = movie.verdict === VERDICTS.ALL_TIME_BLOCKBUSTER;
@@ -104,6 +104,12 @@ export const processStudioGrowth = (gameState, studio, movie) => {
   const marketPenalty = computeMarketSharePenalty(gameState, studio.fans || 0);
   fanGain = Math.round(fanGain * marketPenalty);
 
+  // Shared fanbase bonus: a franchise that has built a loyal fanbase from prior
+  // successful installments boosts this release's fan gain. Defaults to 1 (no
+  // franchise, or first installment), so non-franchise releases are unaffected.
+  const fanMultiplier = franchiseModifiers.fanMultiplier || 1;
+  fanGain = Math.round(fanGain * fanMultiplier);
+
   studio.fans = (studio.fans || 0) + fanGain;
 
   // Prestige Growth: Critic Score, Verdict, Quality
@@ -116,6 +122,11 @@ export const processStudioGrowth = (gameState, studio, movie) => {
     const franchisePrestigeBonus = Math.min(15, (movie.sequelNumber - 1) * 5);
     prestigeGain += franchisePrestigeBonus;
   }
+
+  // Franchise prestige progression: a franchise's accumulated prestige (earned
+  // from the long-term critical success of prior installments) adds a modest,
+  // already-capped bonus. Defaults to 0 for non-franchise releases.
+  prestigeGain += franchiseModifiers.prestigeBonus || 0;
 
   studio.prestige = Math.max(0, (studio.prestige || 0) + prestigeGain);
 
