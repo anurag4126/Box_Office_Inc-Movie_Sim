@@ -1,6 +1,19 @@
 
 import { z } from "zod";
 
+// Valid campaign IDs must mirror the MARKETING_CAMPAIGNS array in the frontend (CreateMovie.jsx)
+const VALID_CAMPAIGN_IDS = [
+  "trailer",
+  "teaser",
+  "pr",
+  "tv",
+  "newspaper",
+  "digital",
+  "social",
+  "influencer",
+  "billboards",
+];
+
 export const createMovieSchema = {
   body: z.object({
     title: z.string()
@@ -12,7 +25,16 @@ export const createMovieSchema = {
     leadActorId: z.string().min(1, "Lead Actor ID is required"),
     supportingActorIds: z.array(z.string()).optional(),
     crewTeamId: z.string().min(1, "Crew Team ID is required"),
-    marketingCampaignIds: z.array(z.string()).optional(),
+    marketingCampaignIds: z
+      .array(z.string())
+      .optional()
+      .refine(
+        (ids) =>
+          !ids || ids.every((id) => VALID_CAMPAIGN_IDS.includes(id)),
+        {
+          message: `Each marketing campaign ID must be one of: ${VALID_CAMPAIGN_IDS.join(", ")}`,
+        }
+      ),
     franchiseId: z.string().optional(),
     createFranchise: z.boolean().optional(),
     franchiseName: z.string()
