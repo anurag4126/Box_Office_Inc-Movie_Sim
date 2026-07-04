@@ -12,7 +12,7 @@ import { addNotification } from "../services/simulation/helpers/notificationHelp
 import { MARKETING_CAMPAIGNS, getEffectiveHypeBoost } from "../constants/marketingCampaigns.js";
 import { generateMovieTitle } from "../services/movie/movieService.js";
 import { generateNewsFromRelease } from "../services/simulation/engines/newsEngine.js";
-import { withTransaction } from "../utils/transactionHelper.js";
+import { withTransaction } from "../utils/financeTransactionHelper.js";
 import Notification from "../models/Notification.js";
 
 const findGameState = async (userId) => GameState.findOne({ user: userId });
