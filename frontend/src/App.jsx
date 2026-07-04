@@ -44,6 +44,7 @@ import NewsDetail from "./pages/news/NewsDetail";
 import Toast from "./components/common/Toast";
 import RivalStudios from "./pages/rivals/RivalStudios";
 import RivalIntelligence from "./pages/rivals/RivalIntelligence";
+import TalentAcademy from "./pages/talent/TalentAcademy";
 import TrophyRoom from "./pages/awards/TrophyRoom";
 import AwardsSeasonDashboard from "./pages/awards/AwardsSeasonDashboard";
 import AwardsCampaign from "./pages/awards/AwardsCampaign";
@@ -231,6 +232,14 @@ function App() {
           }
         />
 
+        <Route
+          path="/talent/academy"
+          element={
+            <ProtectedRoute>
+              <TalentAcademy />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/talent/:type/:id"
           element={
