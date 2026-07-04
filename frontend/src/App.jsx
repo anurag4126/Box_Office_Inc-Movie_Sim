@@ -37,6 +37,7 @@ import Notifications from "./pages/notifications/Notifications";
 import Settings from "./pages/settings/Settings";
 import AuthMonitoring from "./pages/auth/AuthMonitoring";
 import NewsFeed from "./pages/news/NewsFeed";
+import NewsDetail from "./pages/news/NewsDetail";
 import Toast from "./components/common/Toast";
 import RivalStudios from "./pages/rivals/RivalStudios";
 import TrophyRoom from "./pages/awards/TrophyRoom";
@@ -305,6 +306,14 @@ function App() {
           element={
             <ProtectedRoute>
               <NewsFeed />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/news/:id"
+          element={
+            <ProtectedRoute>
+              <NewsDetail />
             </ProtectedRoute>
           }
         />
